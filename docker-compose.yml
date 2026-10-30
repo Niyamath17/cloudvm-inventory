@@ -1,0 +1,38 @@
+# CloudVM – Docker Compose
+#
+# M0: PostgreSQL only. The backend and frontend run on your Mac with `npm run dev`
+# during development; their containers are added in milestone M10.
+#
+# NetBox is intentionally NOT part of this stack (initial mode = SIMULATION).
+#
+# Usage:
+#   docker compose up -d postgres     # start
+#   docker compose ps                 # status (look for "healthy")
+#   docker compose logs -f postgres   # logs
+#   docker compose down               # stop (data is kept in the named volume)
+#   docker compose down -v            # stop AND delete all data
+
+name: cloudvm
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: cloudvm-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:?set POSTGRES_USER in .env}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}
+      POSTGRES_DB: ${POSTGRES_DB:?set POSTGRES_DB in .env}
+    ports:
+      # Bound to 127.0.0.1 so the database is not exposed to your local network.
+      - "127.0.0.1:${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - cloudvm-pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  cloudvm-pgdata:

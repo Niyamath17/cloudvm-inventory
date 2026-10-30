@@ -1,0 +1,14 @@
+// CloudVM – Prisma schema
+//
+// M0: datasource + generator only. Domain models (VirtualMachine,
+// CollectionRun, SyncRun, DriftReport, ...) are added in M1 following
+// docs/ARCHITECTURE_PLAN.md §5.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
