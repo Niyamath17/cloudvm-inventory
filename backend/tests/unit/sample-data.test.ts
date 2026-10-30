@@ -83,7 +83,7 @@ describe('sample files: stable identifiers', () => {
 });
 
 describe('sample files: fully scoped identities', () => {
-  it('every entry yields a unique scoped externalId (59 VMs + 1 template)', () => {
+  it('every one of the 60 entries (58 VMs + 1 template + 1 LXC container) yields a unique scoped externalId', () => {
     const ids = [
       ...aws.Reservations.flatMap((r) =>
         r.Instances.map((i) =>

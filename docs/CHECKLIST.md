@@ -1,6 +1,6 @@
 # CloudVM – Running Checklist
 
-_Last updated: 30 Oct 2026 (M1 verified) · Deadline: 31 Oct 2026, 16:00 IST_
+_Last updated: 30 Oct 2026 (M2 implemented) · Deadline: 31 Oct 2026, 16:00 IST_
 
 Legend: ✅ done & verified · 🟡 done, verification pending · ⏳ pending · ⛔ blocked
 
@@ -48,11 +48,21 @@ Source: `bash scripts/verify-m1.sh` → `m1-verification.log` – **13/13 steps 
 - ✅ `prisma migrate status`: up to date · `migrate diff` DB vs schema: **No difference detected**
 - ✅ Typecheck, build, `/health` regression (HTTP 200, DB up): PASS
 
+## M2 – Provider adapters & normalization — 🟡 IMPLEMENTED, awaiting Mac verification
+- ✅ `ProviderAdapter` interface, `NormalizedVm` schema, helpers, deterministic fingerprint, normalization engine, registry
+- ✅ 5 MOCK adapters + 5 pure mappers (AWS, Azure, GCP, Proxmox, VMware) – per-record raw validation with the M1 schemas
+- ✅ Scope decision: Proxmox templates and LXC containers are **skipped** (LXC = possible future enhancement)
+- ✅ Binary units documented and applied consistently: `memoryMb` = MiB, `diskGb` = GiB (`docs/NORMALIZATION.md`)
+- ✅ All 60 MOCK entries → **58 VMs, 2 skipped, 0 invalid**; 58 unique identities; 58 distinct fingerprints, identical on re-collection
+- ✅ Unit tests in Claude's workspace: **122/122** (80 normalization tests across 9 files) · typecheck clean
+- ✅ No database access in `src/domain`, `src/modules/providers`, `src/modules/normalization` (M1 schema unchanged)
+- ✅ `scripts/verify-m2.sh`, `backend/scripts/normalize-preview.ts`, `docs/NORMALIZATION.md`
+- 🟡 Run `bash scripts/verify-m2.sh` on the Mac
+
 ## Environment notes
 - Claude's cloud workspace cannot reach `binaries.prisma.sh` / Docker Hub, and Claude's Mac shell is unavailable (low disk space) → all DB/Prisma verification runs on the Mac via `scripts/verify-m0.sh`.
 
 ## Pending milestones
-- ⏳ M2 Adapter interface + 5 MOCK adapters + normalization engine
 - ⏳ M3 Inventory service + collection orchestrator + inventory APIs
 - ⏳ M4 NetBox gateway (live + SIMULATION) + sync engine
 - ⏳ M5 Drift engine + reports

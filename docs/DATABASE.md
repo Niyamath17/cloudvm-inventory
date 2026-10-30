@@ -191,8 +191,12 @@ fake value such as `0` or `""`, so the UI can show "Unknown" honestly.
 ## 6. Other decisions
 - **Normalized columns + `rawData` JSON.** The common model is used for querying. The original
   payload is kept for audit ("why does CloudVM say 16 GB?").
-- **Fixed units.** `memoryMb` (NetBox's unit) and `diskGb`. Providers report MiB, MB, bytes or
-  strings; the normalizer converts once (M2).
+- **Fixed binary units.** `memoryMb` holds **MiB** (1024 × 1024 bytes); the M1 column name is kept
+  for compatibility. `diskGb` holds **GiB** (1024³ bytes). Providers and NetBox already count RAM
+  in MiB even when they call it "MB" (Azure `memoryInMB` 4096 = 4 GiB), so AWS/Azure/GCP/VMware
+  memory is stored as is and only byte values (Proxmox `maxmem`/`maxdisk`, VMware disk capacity)
+  are divided by 1024² / 1024³. No decimal (×1.048576) conversion is ever applied. See
+  `docs/NORMALIZATION.md`.
 - **Change detection.** `VirtualMachine.fingerprint` vs `VmSyncState.syncedFingerprint` per
   target. If they are equal, the VM is skipped, which makes sync idempotent.
 - **`SimulatedNetboxVm` mirrors NetBox** field names, units, status values and the

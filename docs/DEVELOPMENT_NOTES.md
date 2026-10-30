@@ -4,6 +4,47 @@ A running log of what was built, why, and how to run it. Newest milestone at the
 
 ---
 
+## M2 – Provider adapters & normalization engine (30 Oct 2026) – implemented
+
+### What & why
+Turns five provider-shaped MOCK files into one validated, fingerprinted `NormalizedVm` list –
+the input M3 will persist. No database access. Design and per-provider mapping tables:
+`docs/NORMALIZATION.md`.
+
+### Files
+| File | Purpose |
+|---|---|
+| `src/domain/normalized-vm.ts` | Common model + Zod schema; binary unit convention (memoryMb = MiB, diskGb = GiB) |
+| `src/modules/providers/ProviderAdapter.ts` | Adapter interface, `CollectionBatch` |
+| `src/modules/providers/mock/sample-file.ts` | MOCK-label enforcement, per-record validation |
+| `src/modules/providers/mock/{aws,azure,gcp,proxmox,vmware}.mock-adapter.ts` | 5 MOCK adapters |
+| `src/modules/normalization/mappers/{aws,azure,gcp,proxmox,vmware}.mapper.ts` | 5 pure mappers (+ `common.ts`) |
+| `src/modules/normalization/{helpers,fingerprint,types,normalizer}.ts` | Conversions, fingerprint, engine |
+| `src/modules/providers/registry.ts` | `defineProvider`, `createMockProviders()` |
+| `backend/scripts/normalize-preview.ts` | `npx tsx scripts/normalize-preview.ts` – prints all 58 normalized VMs |
+| `tests/unit/normalization/*.test.ts` | 80 tests (per provider, combined, engine, helpers, fingerprint) |
+| `scripts/verify-m2.sh` | M2 verification |
+
+### Decisions
+- Proxmox templates and LXC containers are skipped; LXC support documented as a future enhancement.
+- Memory stays in the M1 `memoryMb` column but holds MiB; no decimal conversion anywhere.
+- Hostnames are never invented (e.g. not copied from the GCP instance name) – null + warning.
+- Small refactor: AWS mapper now uses the shared `mappers/common.ts` helpers (identity/lifecycle), like the other four.
+
+### Results in Claude's workspace (DB-free)
+- Unit tests 122/122; typecheck clean; preview: `TOTAL vms=58 skipped=2 invalid=0`.
+- A hand-written expectation in `all-providers.test.ts` (power-state counts) was wrong at first
+  (37 RUNNING / 6 UNKNOWN); an independent count of the preview output gave 39 / 13 / 2 / 4, and the
+  test was corrected to the verified values.
+
+### Run on the Mac
+```bash
+cd ~/Desktop/CloudVM && bash scripts/verify-m2.sh
+cd backend && npx tsx scripts/normalize-preview.ts      # optional: see all 58 VMs
+```
+
+---
+
 ## M1 – Database schema & MOCK sample data (30 Oct 2026) – ✅ verified
 
 ### What & why
