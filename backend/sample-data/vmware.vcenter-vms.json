@@ -1,0 +1,558 @@
+{
+  "_meta": {
+    "mock": true,
+    "label": "MOCK DATA – not collected from a real VMware vCenter Server",
+    "provider": "VMWARE",
+    "shape": "Trimmed vSphere Automation REST API responses: GET /api/vcenter/vm (summary), GET /api/vcenter/vm/{vm} (detail), GET /api/vcenter/vm/{vm}/guest/identity (needs VMware Tools), plus cluster placement and tag assignments (category/tag) from the tagging API.",
+    "scope": {
+      "vcenter": "vcsa01.corp.example.com (placeholder)",
+      "datacenter": "DC-Bangalore",
+      "clusters": [
+        "Prod-Cluster-01",
+        "Dev-Cluster-01"
+      ]
+    },
+    "generatedOn": "2026-10-30",
+    "edgeCases": [
+      "Memory in MiB; disk capacity in BYTES",
+      "Two different VMs are both named 'app-server' in Prod-Cluster-01 (same name, different instance_uuid)",
+      "'web-01' also exists in the AWS sample (cross-provider duplicate name)",
+      "guestIdentity is null when the VM is powered off or VMware Tools is not running (no hostname / IP)",
+      "Power states: POWERED_ON, POWERED_OFF, SUSPENDED",
+      "Owner comes from a tag in category 'Owner'; one VM has no tags",
+      "Morefs (vm-1001…) are only unique per vCenter, so '<vcenter>/<instance_uuid>' is used as the stable ID"
+    ]
+  },
+  "vcenter": "vcsa01.corp.example.com",
+  "vms": [
+    {
+      "summary": {
+        "vm": "vm-1001",
+        "name": "web-01",
+        "power_state": "POWERED_ON",
+        "cpu_count": 2,
+        "memory_size_MiB": 4096
+      },
+      "detail": {
+        "identity": {
+          "name": "web-01",
+          "instance_uuid": "50000001-1a2b-4c3d-8e9f-0a1b2c3d4e5f",
+          "bios_uuid": "42000001-9f8e-4d7c-8b6a-5f4e3d2c1b0a"
+        },
+        "guest_OS": "UBUNTU_64",
+        "cpu": {
+          "count": 2,
+          "cores_per_socket": 1
+        },
+        "memory": {
+          "size_MiB": 4096
+        },
+        "disks": {
+          "2000": {
+            "label": "Hard disk 1",
+            "capacity": 42949672960
+          }
+        }
+      },
+      "guestIdentity": {
+        "host_name": "web-01.corp.example.com",
+        "ip_address": "172.16.10.11",
+        "full_name": {
+          "default_message": "Ubuntu Linux (64-bit)"
+        }
+      },
+      "placement": {
+        "cluster": "Prod-Cluster-01"
+      },
+      "tags": [
+        {
+          "category": "Owner",
+          "name": "web-team"
+        },
+        {
+          "category": "Environment",
+          "name": "prod"
+        }
+      ]
+    },
+    {
+      "summary": {
+        "vm": "vm-1002",
+        "name": "app-server",
+        "power_state": "POWERED_ON",
+        "cpu_count": 4,
+        "memory_size_MiB": 8192
+      },
+      "detail": {
+        "identity": {
+          "name": "app-server",
+          "instance_uuid": "50000002-1a2b-4c3d-8e9f-0a1b2c3d4e5f",
+          "bios_uuid": "42000002-9f8e-4d7c-8b6a-5f4e3d2c1b0a"
+        },
+        "guest_OS": "RHEL_8_64",
+        "cpu": {
+          "count": 4,
+          "cores_per_socket": 1
+        },
+        "memory": {
+          "size_MiB": 8192
+        },
+        "disks": {
+          "2000": {
+            "label": "Hard disk 1",
+            "capacity": 64424509440
+          },
+          "2001": {
+            "label": "Hard disk 2",
+            "capacity": 107374182400
+          }
+        }
+      },
+      "guestIdentity": {
+        "host_name": "app-server-a.corp.example.com",
+        "ip_address": "172.16.10.21",
+        "full_name": {
+          "default_message": "Red Hat Enterprise Linux 8 (64-bit)"
+        }
+      },
+      "placement": {
+        "cluster": "Prod-Cluster-01"
+      },
+      "tags": [
+        {
+          "category": "Owner",
+          "name": "erp-team"
+        },
+        {
+          "category": "Environment",
+          "name": "prod"
+        }
+      ]
+    },
+    {
+      "summary": {
+        "vm": "vm-1003",
+        "name": "app-server",
+        "power_state": "POWERED_ON",
+        "cpu_count": 4,
+        "memory_size_MiB": 8192
+      },
+      "detail": {
+        "identity": {
+          "name": "app-server",
+          "instance_uuid": "50000003-1a2b-4c3d-8e9f-0a1b2c3d4e5f",
+          "bios_uuid": "42000003-9f8e-4d7c-8b6a-5f4e3d2c1b0a"
+        },
+        "guest_OS": "RHEL_8_64",
+        "cpu": {
+          "count": 4,
+          "cores_per_socket": 1
+        },
+        "memory": {
+          "size_MiB": 8192
+        },
+        "disks": {
+          "2000": {
+            "label": "Hard disk 1",
+            "capacity": 64424509440
+          },
+          "2001": {
+            "label": "Hard disk 2",
+            "capacity": 107374182400
+          }
+        }
+      },
+      "guestIdentity": {
+        "host_name": "app-server-b.corp.example.com",
+        "ip_address": "172.16.10.22",
+        "full_name": {
+          "default_message": "Red Hat Enterprise Linux 8 (64-bit)"
+        }
+      },
+      "placement": {
+        "cluster": "Prod-Cluster-01"
+      },
+      "tags": [
+        {
+          "category": "Owner",
+          "name": "erp-team"
+        },
+        {
+          "category": "Environment",
+          "name": "prod"
+        }
+      ]
+    },
+    {
+      "summary": {
+        "vm": "vm-1004",
+        "name": "oracle-db-01",
+        "power_state": "POWERED_ON",
+        "cpu_count": 8,
+        "memory_size_MiB": 65536
+      },
+      "detail": {
+        "identity": {
+          "name": "oracle-db-01",
+          "instance_uuid": "50000004-1a2b-4c3d-8e9f-0a1b2c3d4e5f",
+          "bios_uuid": "42000004-9f8e-4d7c-8b6a-5f4e3d2c1b0a"
+        },
+        "guest_OS": "ORACLE_LINUX_64",
+        "cpu": {
+          "count": 8,
+          "cores_per_socket": 1
+        },
+        "memory": {
+          "size_MiB": 65536
+        },
+        "disks": {
+          "2000": {
+            "label": "Hard disk 1",
+            "capacity": 107374182400
+          },
+          "2001": {
+            "label": "Hard disk 2",
+            "capacity": 2199023255552
+          }
+        }
+      },
+      "guestIdentity": {
+        "host_name": "oracle-db-01.corp.example.com",
+        "ip_address": "172.16.20.10",
+        "full_name": {
+          "default_message": "Oracle Linux 8 (64-bit)"
+        }
+      },
+      "placement": {
+        "cluster": "Prod-Cluster-01"
+      },
+      "tags": [
+        {
+          "category": "Owner",
+          "name": "dba-team"
+        },
+        {
+          "category": "Environment",
+          "name": "prod"
+        }
+      ]
+    },
+    {
+      "summary": {
+        "vm": "vm-1005",
+        "name": "exchange-01",
+        "power_state": "POWERED_ON",
+        "cpu_count": 8,
+        "memory_size_MiB": 32768
+      },
+      "detail": {
+        "identity": {
+          "name": "exchange-01",
+          "instance_uuid": "50000005-1a2b-4c3d-8e9f-0a1b2c3d4e5f",
+          "bios_uuid": "42000005-9f8e-4d7c-8b6a-5f4e3d2c1b0a"
+        },
+        "guest_OS": "WINDOWS_2019SERVER_64",
+        "cpu": {
+          "count": 8,
+          "cores_per_socket": 1
+        },
+        "memory": {
+          "size_MiB": 32768
+        },
+        "disks": {
+          "2000": {
+            "label": "Hard disk 1",
+            "capacity": 214748364800
+          },
+          "2001": {
+            "label": "Hard disk 2",
+            "capacity": 1099511627776
+          }
+        }
+      },
+      "guestIdentity": {
+        "host_name": "EXCH01.corp.example.com",
+        "ip_address": "172.16.30.10",
+        "full_name": {
+          "default_message": "Microsoft Windows Server 2019 (64-bit)"
+        }
+      },
+      "placement": {
+        "cluster": "Prod-Cluster-01"
+      },
+      "tags": [
+        {
+          "category": "Owner",
+          "name": "it-ops"
+        },
+        {
+          "category": "Environment",
+          "name": "prod"
+        }
+      ]
+    },
+    {
+      "summary": {
+        "vm": "vm-1006",
+        "name": "print-srv-01",
+        "power_state": "POWERED_OFF",
+        "cpu_count": 2,
+        "memory_size_MiB": 4096
+      },
+      "detail": {
+        "identity": {
+          "name": "print-srv-01",
+          "instance_uuid": "50000006-1a2b-4c3d-8e9f-0a1b2c3d4e5f",
+          "bios_uuid": "42000006-9f8e-4d7c-8b6a-5f4e3d2c1b0a"
+        },
+        "guest_OS": "WINDOWS_2019SERVER_64",
+        "cpu": {
+          "count": 2,
+          "cores_per_socket": 1
+        },
+        "memory": {
+          "size_MiB": 4096
+        },
+        "disks": {
+          "2000": {
+            "label": "Hard disk 1",
+            "capacity": 64424509440
+          }
+        }
+      },
+      "guestIdentity": null,
+      "placement": {
+        "cluster": "Prod-Cluster-01"
+      },
+      "tags": [
+        {
+          "category": "Owner",
+          "name": "it-ops"
+        }
+      ]
+    },
+    {
+      "summary": {
+        "vm": "vm-1007",
+        "name": "backup-proxy-01",
+        "power_state": "POWERED_ON",
+        "cpu_count": 4,
+        "memory_size_MiB": 16384
+      },
+      "detail": {
+        "identity": {
+          "name": "backup-proxy-01",
+          "instance_uuid": "50000007-1a2b-4c3d-8e9f-0a1b2c3d4e5f",
+          "bios_uuid": "42000007-9f8e-4d7c-8b6a-5f4e3d2c1b0a"
+        },
+        "guest_OS": "WINDOWS_2022_SERVER_64",
+        "cpu": {
+          "count": 4,
+          "cores_per_socket": 1
+        },
+        "memory": {
+          "size_MiB": 16384
+        },
+        "disks": {
+          "2000": {
+            "label": "Hard disk 1",
+            "capacity": 107374182400
+          }
+        }
+      },
+      "guestIdentity": null,
+      "placement": {
+        "cluster": "Prod-Cluster-01"
+      },
+      "tags": [
+        {
+          "category": "Owner",
+          "name": "backup-team"
+        }
+      ]
+    },
+    {
+      "summary": {
+        "vm": "vm-2001",
+        "name": "dev-api-01",
+        "power_state": "POWERED_ON",
+        "cpu_count": 2,
+        "memory_size_MiB": 8192
+      },
+      "detail": {
+        "identity": {
+          "name": "dev-api-01",
+          "instance_uuid": "50000008-1a2b-4c3d-8e9f-0a1b2c3d4e5f",
+          "bios_uuid": "42000008-9f8e-4d7c-8b6a-5f4e3d2c1b0a"
+        },
+        "guest_OS": "UBUNTU_64",
+        "cpu": {
+          "count": 2,
+          "cores_per_socket": 1
+        },
+        "memory": {
+          "size_MiB": 8192
+        },
+        "disks": {
+          "2000": {
+            "label": "Hard disk 1",
+            "capacity": 53687091200
+          }
+        }
+      },
+      "guestIdentity": {
+        "host_name": "dev-api-01.dev.example.com",
+        "ip_address": "172.17.10.11",
+        "full_name": {
+          "default_message": "Ubuntu Linux (64-bit)"
+        }
+      },
+      "placement": {
+        "cluster": "Dev-Cluster-01"
+      },
+      "tags": [
+        {
+          "category": "Owner",
+          "name": "web-team"
+        },
+        {
+          "category": "Environment",
+          "name": "dev"
+        }
+      ]
+    },
+    {
+      "summary": {
+        "vm": "vm-2002",
+        "name": "dev-db-01",
+        "power_state": "SUSPENDED",
+        "cpu_count": 2,
+        "memory_size_MiB": 8192
+      },
+      "detail": {
+        "identity": {
+          "name": "dev-db-01",
+          "instance_uuid": "50000009-1a2b-4c3d-8e9f-0a1b2c3d4e5f",
+          "bios_uuid": "42000009-9f8e-4d7c-8b6a-5f4e3d2c1b0a"
+        },
+        "guest_OS": "UBUNTU_64",
+        "cpu": {
+          "count": 2,
+          "cores_per_socket": 1
+        },
+        "memory": {
+          "size_MiB": 8192
+        },
+        "disks": {
+          "2000": {
+            "label": "Hard disk 1",
+            "capacity": 53687091200
+          },
+          "2001": {
+            "label": "Hard disk 2",
+            "capacity": 214748364800
+          }
+        }
+      },
+      "guestIdentity": null,
+      "placement": {
+        "cluster": "Dev-Cluster-01"
+      },
+      "tags": [
+        {
+          "category": "Owner",
+          "name": "dba-team"
+        },
+        {
+          "category": "Environment",
+          "name": "dev"
+        }
+      ]
+    },
+    {
+      "summary": {
+        "vm": "vm-2003",
+        "name": "qa-selenium-01",
+        "power_state": "POWERED_OFF",
+        "cpu_count": 4,
+        "memory_size_MiB": 8192
+      },
+      "detail": {
+        "identity": {
+          "name": "qa-selenium-01",
+          "instance_uuid": "50000010-1a2b-4c3d-8e9f-0a1b2c3d4e5f",
+          "bios_uuid": "42000010-9f8e-4d7c-8b6a-5f4e3d2c1b0a"
+        },
+        "guest_OS": "WINDOWS_9_64",
+        "cpu": {
+          "count": 4,
+          "cores_per_socket": 1
+        },
+        "memory": {
+          "size_MiB": 8192
+        },
+        "disks": {
+          "2000": {
+            "label": "Hard disk 1",
+            "capacity": 85899345920
+          }
+        }
+      },
+      "guestIdentity": null,
+      "placement": {
+        "cluster": "Dev-Cluster-01"
+      },
+      "tags": []
+    },
+    {
+      "summary": {
+        "vm": "vm-2004",
+        "name": "dev-k8s-01",
+        "power_state": "POWERED_ON",
+        "cpu_count": 8,
+        "memory_size_MiB": 32768
+      },
+      "detail": {
+        "identity": {
+          "name": "dev-k8s-01",
+          "instance_uuid": "50000011-1a2b-4c3d-8e9f-0a1b2c3d4e5f",
+          "bios_uuid": "42000011-9f8e-4d7c-8b6a-5f4e3d2c1b0a"
+        },
+        "guest_OS": "UBUNTU_64",
+        "cpu": {
+          "count": 8,
+          "cores_per_socket": 1
+        },
+        "memory": {
+          "size_MiB": 32768
+        },
+        "disks": {
+          "2000": {
+            "label": "Hard disk 1",
+            "capacity": 214748364800
+          }
+        }
+      },
+      "guestIdentity": {
+        "host_name": "dev-k8s-01",
+        "ip_address": "172.17.20.10",
+        "full_name": {
+          "default_message": "Ubuntu Linux (64-bit)"
+        }
+      },
+      "placement": {
+        "cluster": "Dev-Cluster-01"
+      },
+      "tags": [
+        {
+          "category": "Owner",
+          "name": "platform-team"
+        },
+        {
+          "category": "Environment",
+          "name": "dev"
+        }
+      ]
+    }
+  ]
+}

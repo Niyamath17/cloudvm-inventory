@@ -4,6 +4,46 @@ A running log of what was built, why, and how to run it. Newest milestone at the
 
 ---
 
+## M1 – Database schema & MOCK sample data (30 Oct 2026) – ✅ verified
+
+### What & why
+The database structure every later milestone writes to, plus realistic provider-shaped MOCK data
+for the M2 adapters. Design rationale: `docs/DATABASE.md`.
+
+### Files
+| File | Purpose |
+|---|---|
+| `backend/prisma/schema.prisma` | 9 models, 12 enums (replaces the M0 datasource-only schema) |
+| `backend/prisma/sql/init_check_constraints.sql` | 2 CHECK constraints appended to the init migration |
+| `backend/src/domain/identity.ts` | The only place a scoped `externalId` is built |
+| `backend/src/domain/state.ts` | Provider state → lifecycle + power state (AWS terminated ≠ stopped) |
+| `backend/tests/unit/identity.test.ts`, `state.test.ts` | 16 tests |
+| `backend/sample-data/*.json` | 60 MOCK entries in AWS / Azure / GCP / Proxmox / VMware API shapes |
+| `backend/sample-data/README.md` | States clearly that everything in the folder is MOCK |
+| `backend/src/modules/providers/raw/*.raw.ts` | Zod schemas for each provider's raw shape (+ `_meta.mock` must be `true`) |
+| `backend/tests/unit/sample-data.test.ts` | 20 tests on the sample data |
+| `backend/tests/integration/schema.test.ts` | 16 tests proving DB-level constraints (uses `m1test-` rows, cleaned up) |
+| `scripts/lib/verify-common.sh`, `scripts/verify-m1.sh` | M1 verification (M0 script left untouched) |
+| `docs/DATABASE.md` | ER diagram + schema decisions |
+
+### Steps on the Mac (after approval)
+```bash
+cd ~/Desktop/CloudVM/backend
+npx prisma migrate diff --from-empty --to-schema-datamodel prisma/schema.prisma --script   # preview SQL, changes nothing
+npx prisma migrate dev --name init --create-only                          # write SQL only
+cat prisma/sql/init_check_constraints.sql >> prisma/migrations/*_init/migration.sql
+npx prisma migrate dev                                                    # apply
+cd .. && bash scripts/verify-m1.sh
+```
+Note: `npm test` now needs the migration – `schema.test.ts` writes to real tables.
+
+### Verification results (Mac, 30 Oct 2026 18:54 IST)
+- Migration `20261030132142_init` created with `--create-only`, CHECK SQL appended, applied with `migrate dev`.
+- `verify-m1.sh`: 13/13 PASS – migrate status up to date; DB vs schema “No difference detected”; 9 tables + 2 CHECK constraints present; typecheck/build PASS; **66/66 tests**; `/health` 200.
+- Prisma reports CHECK violations as PostgreSQL error 23514 with the constraint name in the message (the tests match on the name). The `prisma:error` lines in the test output are the expected rejections, not failures.
+
+---
+
 ## M0 – Project scaffold (30 Oct 2026)
 
 ### What & why

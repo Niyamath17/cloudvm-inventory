@@ -1,0 +1,887 @@
+{
+  "_meta": {
+    "mock": true,
+    "label": "MOCK DATA – not collected from a real Azure subscription",
+    "provider": "AZURE",
+    "shape": "Trimmed Azure Resource Manager 'Virtual Machines - List All' response (with instanceView), plus VM sizes (cores/memory) and network interfaces (private IPs), which ARM returns from separate endpoints.",
+    "scope": {
+      "subscriptionId": "00000000-aaaa-4bbb-8ccc-000000000001 (placeholder)",
+      "locations": [
+        "centralindia",
+        "westeurope",
+        "eastus"
+      ]
+    },
+    "generatedOn": "2026-10-30",
+    "edgeCases": [
+      "Memory in MB (vmSizes.memoryInMB)",
+      "Power states: running, deallocated, stopped, starting; img-builder-01 has no instanceView (power state unknown)",
+      "test-agent-02 has no osProfile (hostname unknown)",
+      "Windows computerName is upper-case and differs from the resource name",
+      "Tag keys vary in case: owner / Owner, env / Environment; test-agent-01 has no owner",
+      "Disk = OS disk + data disks"
+    ]
+  },
+  "value": [
+    {
+      "id": "/subscriptions/00000000-aaaa-4bbb-8ccc-000000000001/resourceGroups/rg-crm-prod/providers/Microsoft.Compute/virtualMachines/crm-app-01",
+      "name": "crm-app-01",
+      "type": "Microsoft.Compute/virtualMachines",
+      "location": "centralindia",
+      "tags": {
+        "env": "prod",
+        "owner": "sales-it"
+      },
+      "properties": {
+        "vmId": "6f1c9a3e-0000-4000-8000-000000000001",
+        "hardwareProfile": {
+          "vmSize": "Standard_D4s_v5"
+        },
+        "storageProfile": {
+          "imageReference": {
+            "publisher": "Canonical",
+            "offer": "0001-com-ubuntu-server-jammy",
+            "sku": "22_04-lts-gen2",
+            "version": "latest"
+          },
+          "osDisk": {
+            "osType": "Linux",
+            "name": "crm-app-01-osdisk",
+            "diskSizeGB": 64
+          },
+          "dataDisks": [
+            {
+              "lun": 0,
+              "name": "crm-app-01-data0",
+              "diskSizeGB": 256
+            }
+          ]
+        },
+        "networkProfile": {
+          "networkInterfaces": [
+            {
+              "id": "/subscriptions/00000000-aaaa-4bbb-8ccc-000000000001/resourceGroups/rg-crm-prod/providers/Microsoft.Network/networkInterfaces/crm-app-01-nic"
+            }
+          ]
+        },
+        "provisioningState": "Succeeded",
+        "osProfile": {
+          "computerName": "crm-app-01",
+          "adminUsername": "azureuser"
+        },
+        "instanceView": {
+          "statuses": [
+            {
+              "code": "ProvisioningState/succeeded",
+              "displayStatus": "Provisioning succeeded"
+            },
+            {
+              "code": "PowerState/running",
+              "displayStatus": "VM running"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "/subscriptions/00000000-aaaa-4bbb-8ccc-000000000001/resourceGroups/rg-crm-prod/providers/Microsoft.Compute/virtualMachines/crm-app-02",
+      "name": "crm-app-02",
+      "type": "Microsoft.Compute/virtualMachines",
+      "location": "centralindia",
+      "tags": {
+        "env": "prod",
+        "owner": "sales-it"
+      },
+      "properties": {
+        "vmId": "6f1c9a3e-0000-4000-8000-000000000002",
+        "hardwareProfile": {
+          "vmSize": "Standard_D4s_v5"
+        },
+        "storageProfile": {
+          "imageReference": {
+            "publisher": "Canonical",
+            "offer": "0001-com-ubuntu-server-jammy",
+            "sku": "22_04-lts-gen2",
+            "version": "latest"
+          },
+          "osDisk": {
+            "osType": "Linux",
+            "name": "crm-app-02-osdisk",
+            "diskSizeGB": 64
+          },
+          "dataDisks": [
+            {
+              "lun": 0,
+              "name": "crm-app-02-data0",
+              "diskSizeGB": 256
+            }
+          ]
+        },
+        "networkProfile": {
+          "networkInterfaces": [
+            {
+              "id": "/subscriptions/00000000-aaaa-4bbb-8ccc-000000000001/resourceGroups/rg-crm-prod/providers/Microsoft.Network/networkInterfaces/crm-app-02-nic"
+            }
+          ]
+        },
+        "provisioningState": "Succeeded",
+        "osProfile": {
+          "computerName": "crm-app-02",
+          "adminUsername": "azureuser"
+        },
+        "instanceView": {
+          "statuses": [
+            {
+              "code": "ProvisioningState/succeeded",
+              "displayStatus": "Provisioning succeeded"
+            },
+            {
+              "code": "PowerState/running",
+              "displayStatus": "VM running"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "/subscriptions/00000000-aaaa-4bbb-8ccc-000000000001/resourceGroups/rg-crm-prod/providers/Microsoft.Compute/virtualMachines/crm-db-01",
+      "name": "crm-db-01",
+      "type": "Microsoft.Compute/virtualMachines",
+      "location": "centralindia",
+      "tags": {
+        "env": "prod",
+        "Owner": "dba-team",
+        "backup": "daily"
+      },
+      "properties": {
+        "vmId": "6f1c9a3e-0000-4000-8000-000000000003",
+        "hardwareProfile": {
+          "vmSize": "Standard_E2s_v5"
+        },
+        "storageProfile": {
+          "imageReference": {
+            "publisher": "RedHat",
+            "offer": "RHEL",
+            "sku": "9-lvm-gen2",
+            "version": "latest"
+          },
+          "osDisk": {
+            "osType": "Linux",
+            "name": "crm-db-01-osdisk",
+            "diskSizeGB": 64
+          },
+          "dataDisks": [
+            {
+              "lun": 0,
+              "name": "crm-db-01-data0",
+              "diskSizeGB": 512
+            },
+            {
+              "lun": 1,
+              "name": "crm-db-01-data1",
+              "diskSizeGB": 512
+            }
+          ]
+        },
+        "networkProfile": {
+          "networkInterfaces": [
+            {
+              "id": "/subscriptions/00000000-aaaa-4bbb-8ccc-000000000001/resourceGroups/rg-crm-prod/providers/Microsoft.Network/networkInterfaces/crm-db-01-nic"
+            }
+          ]
+        },
+        "provisioningState": "Succeeded",
+        "osProfile": {
+          "computerName": "crm-db-01",
+          "adminUsername": "azureuser"
+        },
+        "instanceView": {
+          "statuses": [
+            {
+              "code": "ProvisioningState/succeeded",
+              "displayStatus": "Provisioning succeeded"
+            },
+            {
+              "code": "PowerState/running",
+              "displayStatus": "VM running"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "/subscriptions/00000000-aaaa-4bbb-8ccc-000000000001/resourceGroups/rg-hr/providers/Microsoft.Compute/virtualMachines/hr-portal-01",
+      "name": "hr-portal-01",
+      "type": "Microsoft.Compute/virtualMachines",
+      "location": "centralindia",
+      "tags": {
+        "Environment": "prod",
+        "owner": "hr-it"
+      },
+      "properties": {
+        "vmId": "6f1c9a3e-0000-4000-8000-000000000004",
+        "hardwareProfile": {
+          "vmSize": "Standard_D2s_v5"
+        },
+        "storageProfile": {
+          "imageReference": {
+            "publisher": "MicrosoftWindowsServer",
+            "offer": "WindowsServer",
+            "sku": "2022-datacenter-azure-edition",
+            "version": "latest"
+          },
+          "osDisk": {
+            "osType": "Windows",
+            "name": "hr-portal-01-osdisk",
+            "diskSizeGB": 127
+          },
+          "dataDisks": []
+        },
+        "networkProfile": {
+          "networkInterfaces": [
+            {
+              "id": "/subscriptions/00000000-aaaa-4bbb-8ccc-000000000001/resourceGroups/rg-hr/providers/Microsoft.Network/networkInterfaces/hr-portal-01-nic"
+            }
+          ]
+        },
+        "provisioningState": "Succeeded",
+        "osProfile": {
+          "computerName": "HRPORTAL01",
+          "adminUsername": "azureuser"
+        },
+        "instanceView": {
+          "statuses": [
+            {
+              "code": "ProvisioningState/succeeded",
+              "displayStatus": "Provisioning succeeded"
+            },
+            {
+              "code": "PowerState/running",
+              "displayStatus": "VM running"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "/subscriptions/00000000-aaaa-4bbb-8ccc-000000000001/resourceGroups/rg-hr/providers/Microsoft.Compute/virtualMachines/hr-portal-02",
+      "name": "hr-portal-02",
+      "type": "Microsoft.Compute/virtualMachines",
+      "location": "centralindia",
+      "tags": {
+        "Environment": "prod",
+        "owner": "hr-it"
+      },
+      "properties": {
+        "vmId": "6f1c9a3e-0000-4000-8000-000000000005",
+        "hardwareProfile": {
+          "vmSize": "Standard_D2s_v5"
+        },
+        "storageProfile": {
+          "imageReference": {
+            "publisher": "MicrosoftWindowsServer",
+            "offer": "WindowsServer",
+            "sku": "2022-datacenter-azure-edition",
+            "version": "latest"
+          },
+          "osDisk": {
+            "osType": "Windows",
+            "name": "hr-portal-02-osdisk",
+            "diskSizeGB": 127
+          },
+          "dataDisks": []
+        },
+        "networkProfile": {
+          "networkInterfaces": [
+            {
+              "id": "/subscriptions/00000000-aaaa-4bbb-8ccc-000000000001/resourceGroups/rg-hr/providers/Microsoft.Network/networkInterfaces/hr-portal-02-nic"
+            }
+          ]
+        },
+        "provisioningState": "Succeeded",
+        "osProfile": {
+          "computerName": "HRPORTAL02",
+          "adminUsername": "azureuser"
+        },
+        "instanceView": {
+          "statuses": [
+            {
+              "code": "ProvisioningState/succeeded",
+              "displayStatus": "Provisioning succeeded"
+            },
+            {
+              "code": "PowerState/deallocated",
+              "displayStatus": "VM deallocated"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "/subscriptions/00000000-aaaa-4bbb-8ccc-000000000001/resourceGroups/rg-analytics/providers/Microsoft.Compute/virtualMachines/bi-gateway-01",
+      "name": "bi-gateway-01",
+      "type": "Microsoft.Compute/virtualMachines",
+      "location": "westeurope",
+      "tags": {
+        "env": "prod",
+        "owner": "data-eng"
+      },
+      "properties": {
+        "vmId": "6f1c9a3e-0000-4000-8000-000000000006",
+        "hardwareProfile": {
+          "vmSize": "Standard_D4s_v5"
+        },
+        "storageProfile": {
+          "imageReference": {
+            "publisher": "MicrosoftWindowsServer",
+            "offer": "WindowsServer",
+            "sku": "2022-datacenter-azure-edition",
+            "version": "latest"
+          },
+          "osDisk": {
+            "osType": "Windows",
+            "name": "bi-gateway-01-osdisk",
+            "diskSizeGB": 127
+          },
+          "dataDisks": [
+            {
+              "lun": 0,
+              "name": "bi-gateway-01-data0",
+              "diskSizeGB": 128
+            }
+          ]
+        },
+        "networkProfile": {
+          "networkInterfaces": [
+            {
+              "id": "/subscriptions/00000000-aaaa-4bbb-8ccc-000000000001/resourceGroups/rg-analytics/providers/Microsoft.Network/networkInterfaces/bi-gateway-01-nic"
+            }
+          ]
+        },
+        "provisioningState": "Succeeded",
+        "osProfile": {
+          "computerName": "BIGW01",
+          "adminUsername": "azureuser"
+        },
+        "instanceView": {
+          "statuses": [
+            {
+              "code": "ProvisioningState/succeeded",
+              "displayStatus": "Provisioning succeeded"
+            },
+            {
+              "code": "PowerState/running",
+              "displayStatus": "VM running"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "/subscriptions/00000000-aaaa-4bbb-8ccc-000000000001/resourceGroups/rg-analytics/providers/Microsoft.Compute/virtualMachines/etl-runner-01",
+      "name": "etl-runner-01",
+      "type": "Microsoft.Compute/virtualMachines",
+      "location": "westeurope",
+      "tags": {
+        "env": "prod",
+        "owner": "data-eng"
+      },
+      "properties": {
+        "vmId": "6f1c9a3e-0000-4000-8000-000000000007",
+        "hardwareProfile": {
+          "vmSize": "Standard_D2s_v5"
+        },
+        "storageProfile": {
+          "imageReference": {
+            "publisher": "Canonical",
+            "offer": "0001-com-ubuntu-server-jammy",
+            "sku": "22_04-lts-gen2",
+            "version": "latest"
+          },
+          "osDisk": {
+            "osType": "Linux",
+            "name": "etl-runner-01-osdisk",
+            "diskSizeGB": 30
+          },
+          "dataDisks": []
+        },
+        "networkProfile": {
+          "networkInterfaces": [
+            {
+              "id": "/subscriptions/00000000-aaaa-4bbb-8ccc-000000000001/resourceGroups/rg-analytics/providers/Microsoft.Network/networkInterfaces/etl-runner-01-nic"
+            }
+          ]
+        },
+        "provisioningState": "Succeeded",
+        "osProfile": {
+          "computerName": "etl-runner-01",
+          "adminUsername": "azureuser"
+        },
+        "instanceView": {
+          "statuses": [
+            {
+              "code": "ProvisioningState/succeeded",
+              "displayStatus": "Provisioning succeeded"
+            },
+            {
+              "code": "PowerState/stopped",
+              "displayStatus": "VM stopped"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "/subscriptions/00000000-aaaa-4bbb-8ccc-000000000001/resourceGroups/rg-network/providers/Microsoft.Compute/virtualMachines/vpn-gw-vm-01",
+      "name": "vpn-gw-vm-01",
+      "type": "Microsoft.Compute/virtualMachines",
+      "location": "westeurope",
+      "tags": {
+        "env": "prod",
+        "owner": "network-team"
+      },
+      "properties": {
+        "vmId": "6f1c9a3e-0000-4000-8000-000000000008",
+        "hardwareProfile": {
+          "vmSize": "Standard_B2s"
+        },
+        "storageProfile": {
+          "imageReference": {
+            "publisher": "Canonical",
+            "offer": "0001-com-ubuntu-server-jammy",
+            "sku": "22_04-lts-gen2",
+            "version": "latest"
+          },
+          "osDisk": {
+            "osType": "Linux",
+            "name": "vpn-gw-vm-01-osdisk",
+            "diskSizeGB": 30
+          },
+          "dataDisks": []
+        },
+        "networkProfile": {
+          "networkInterfaces": [
+            {
+              "id": "/subscriptions/00000000-aaaa-4bbb-8ccc-000000000001/resourceGroups/rg-network/providers/Microsoft.Network/networkInterfaces/vpn-gw-vm-01-nic"
+            }
+          ]
+        },
+        "provisioningState": "Succeeded",
+        "osProfile": {
+          "computerName": "vpn-gw-vm-01",
+          "adminUsername": "azureuser"
+        },
+        "instanceView": {
+          "statuses": [
+            {
+              "code": "ProvisioningState/succeeded",
+              "displayStatus": "Provisioning succeeded"
+            },
+            {
+              "code": "PowerState/running",
+              "displayStatus": "VM running"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "/subscriptions/00000000-aaaa-4bbb-8ccc-000000000001/resourceGroups/rg-qa/providers/Microsoft.Compute/virtualMachines/test-agent-01",
+      "name": "test-agent-01",
+      "type": "Microsoft.Compute/virtualMachines",
+      "location": "eastus",
+      "tags": {
+        "env": "qa"
+      },
+      "properties": {
+        "vmId": "6f1c9a3e-0000-4000-8000-000000000009",
+        "hardwareProfile": {
+          "vmSize": "Standard_B2s"
+        },
+        "storageProfile": {
+          "imageReference": {
+            "publisher": "Canonical",
+            "offer": "0001-com-ubuntu-server-jammy",
+            "sku": "22_04-lts-gen2",
+            "version": "latest"
+          },
+          "osDisk": {
+            "osType": "Linux",
+            "name": "test-agent-01-osdisk",
+            "diskSizeGB": 30
+          },
+          "dataDisks": []
+        },
+        "networkProfile": {
+          "networkInterfaces": [
+            {
+              "id": "/subscriptions/00000000-aaaa-4bbb-8ccc-000000000001/resourceGroups/rg-qa/providers/Microsoft.Network/networkInterfaces/test-agent-01-nic"
+            }
+          ]
+        },
+        "provisioningState": "Succeeded",
+        "osProfile": {
+          "computerName": "test-agent-01",
+          "adminUsername": "azureuser"
+        },
+        "instanceView": {
+          "statuses": [
+            {
+              "code": "ProvisioningState/succeeded",
+              "displayStatus": "Provisioning succeeded"
+            },
+            {
+              "code": "PowerState/starting",
+              "displayStatus": "VM starting"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "/subscriptions/00000000-aaaa-4bbb-8ccc-000000000001/resourceGroups/rg-qa/providers/Microsoft.Compute/virtualMachines/test-agent-02",
+      "name": "test-agent-02",
+      "type": "Microsoft.Compute/virtualMachines",
+      "location": "eastus",
+      "tags": {
+        "env": "qa",
+        "owner": "qa-team"
+      },
+      "properties": {
+        "vmId": "6f1c9a3e-0000-4000-8000-000000000010",
+        "hardwareProfile": {
+          "vmSize": "Standard_B2s"
+        },
+        "storageProfile": {
+          "imageReference": {
+            "publisher": "Canonical",
+            "offer": "0001-com-ubuntu-server-jammy",
+            "sku": "22_04-lts-gen2",
+            "version": "latest"
+          },
+          "osDisk": {
+            "osType": "Linux",
+            "name": "test-agent-02-osdisk",
+            "diskSizeGB": 30
+          },
+          "dataDisks": []
+        },
+        "networkProfile": {
+          "networkInterfaces": [
+            {
+              "id": "/subscriptions/00000000-aaaa-4bbb-8ccc-000000000001/resourceGroups/rg-qa/providers/Microsoft.Network/networkInterfaces/test-agent-02-nic"
+            }
+          ]
+        },
+        "provisioningState": "Succeeded",
+        "instanceView": {
+          "statuses": [
+            {
+              "code": "ProvisioningState/succeeded",
+              "displayStatus": "Provisioning succeeded"
+            },
+            {
+              "code": "PowerState/deallocated",
+              "displayStatus": "VM deallocated"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "/subscriptions/00000000-aaaa-4bbb-8ccc-000000000001/resourceGroups/rg-devops/providers/Microsoft.Compute/virtualMachines/img-builder-01",
+      "name": "img-builder-01",
+      "type": "Microsoft.Compute/virtualMachines",
+      "location": "eastus",
+      "tags": {
+        "env": "tools",
+        "owner": "devops"
+      },
+      "properties": {
+        "vmId": "6f1c9a3e-0000-4000-8000-000000000011",
+        "hardwareProfile": {
+          "vmSize": "Standard_D2s_v5"
+        },
+        "storageProfile": {
+          "imageReference": {
+            "publisher": "Canonical",
+            "offer": "0001-com-ubuntu-server-jammy",
+            "sku": "22_04-lts-gen2",
+            "version": "latest"
+          },
+          "osDisk": {
+            "osType": "Linux",
+            "name": "img-builder-01-osdisk",
+            "diskSizeGB": 64
+          },
+          "dataDisks": []
+        },
+        "networkProfile": {
+          "networkInterfaces": [
+            {
+              "id": "/subscriptions/00000000-aaaa-4bbb-8ccc-000000000001/resourceGroups/rg-devops/providers/Microsoft.Network/networkInterfaces/img-builder-01-nic"
+            }
+          ]
+        },
+        "provisioningState": "Succeeded",
+        "osProfile": {
+          "computerName": "img-builder-01",
+          "adminUsername": "azureuser"
+        }
+      }
+    },
+    {
+      "id": "/subscriptions/00000000-aaaa-4bbb-8ccc-000000000001/resourceGroups/rg-sap/providers/Microsoft.Compute/virtualMachines/sap-app-01",
+      "name": "sap-app-01",
+      "type": "Microsoft.Compute/virtualMachines",
+      "location": "centralindia",
+      "tags": {
+        "env": "prod",
+        "Owner": "sap-basis",
+        "costCenter": "CC-4410"
+      },
+      "properties": {
+        "vmId": "6f1c9a3e-0000-4000-8000-000000000012",
+        "hardwareProfile": {
+          "vmSize": "Standard_E2s_v5"
+        },
+        "storageProfile": {
+          "imageReference": {
+            "publisher": "RedHat",
+            "offer": "RHEL",
+            "sku": "9-lvm-gen2",
+            "version": "latest"
+          },
+          "osDisk": {
+            "osType": "Linux",
+            "name": "sap-app-01-osdisk",
+            "diskSizeGB": 64
+          },
+          "dataDisks": [
+            {
+              "lun": 0,
+              "name": "sap-app-01-data0",
+              "diskSizeGB": 1024
+            }
+          ]
+        },
+        "networkProfile": {
+          "networkInterfaces": [
+            {
+              "id": "/subscriptions/00000000-aaaa-4bbb-8ccc-000000000001/resourceGroups/rg-sap/providers/Microsoft.Network/networkInterfaces/sap-app-01-nic"
+            }
+          ]
+        },
+        "provisioningState": "Succeeded",
+        "osProfile": {
+          "computerName": "sapapp01",
+          "adminUsername": "azureuser"
+        },
+        "instanceView": {
+          "statuses": [
+            {
+              "code": "ProvisioningState/succeeded",
+              "displayStatus": "Provisioning succeeded"
+            },
+            {
+              "code": "PowerState/running",
+              "displayStatus": "VM running"
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "vmSizes": [
+    {
+      "name": "Standard_B2s",
+      "numberOfCores": 2,
+      "memoryInMB": 4096
+    },
+    {
+      "name": "Standard_D2s_v5",
+      "numberOfCores": 2,
+      "memoryInMB": 8192
+    },
+    {
+      "name": "Standard_D4s_v5",
+      "numberOfCores": 4,
+      "memoryInMB": 16384
+    },
+    {
+      "name": "Standard_E2s_v5",
+      "numberOfCores": 2,
+      "memoryInMB": 16384
+    }
+  ],
+  "networkInterfaces": [
+    {
+      "id": "/subscriptions/00000000-aaaa-4bbb-8ccc-000000000001/resourceGroups/rg-crm-prod/providers/Microsoft.Network/networkInterfaces/crm-app-01-nic",
+      "properties": {
+        "ipConfigurations": [
+          {
+            "name": "ipconfig1",
+            "properties": {
+              "privateIPAddress": "10.40.1.10",
+              "primary": true
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "/subscriptions/00000000-aaaa-4bbb-8ccc-000000000001/resourceGroups/rg-crm-prod/providers/Microsoft.Network/networkInterfaces/crm-app-02-nic",
+      "properties": {
+        "ipConfigurations": [
+          {
+            "name": "ipconfig1",
+            "properties": {
+              "privateIPAddress": "10.40.1.11",
+              "primary": true
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "/subscriptions/00000000-aaaa-4bbb-8ccc-000000000001/resourceGroups/rg-crm-prod/providers/Microsoft.Network/networkInterfaces/crm-db-01-nic",
+      "properties": {
+        "ipConfigurations": [
+          {
+            "name": "ipconfig1",
+            "properties": {
+              "privateIPAddress": "10.40.2.10",
+              "primary": true
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "/subscriptions/00000000-aaaa-4bbb-8ccc-000000000001/resourceGroups/rg-hr/providers/Microsoft.Network/networkInterfaces/hr-portal-01-nic",
+      "properties": {
+        "ipConfigurations": [
+          {
+            "name": "ipconfig1",
+            "properties": {
+              "privateIPAddress": "10.40.3.10",
+              "primary": true
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "/subscriptions/00000000-aaaa-4bbb-8ccc-000000000001/resourceGroups/rg-hr/providers/Microsoft.Network/networkInterfaces/hr-portal-02-nic",
+      "properties": {
+        "ipConfigurations": [
+          {
+            "name": "ipconfig1",
+            "properties": {
+              "privateIPAddress": "10.40.3.11",
+              "primary": true
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "/subscriptions/00000000-aaaa-4bbb-8ccc-000000000001/resourceGroups/rg-analytics/providers/Microsoft.Network/networkInterfaces/bi-gateway-01-nic",
+      "properties": {
+        "ipConfigurations": [
+          {
+            "name": "ipconfig1",
+            "properties": {
+              "privateIPAddress": "10.41.1.10",
+              "primary": true
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "/subscriptions/00000000-aaaa-4bbb-8ccc-000000000001/resourceGroups/rg-analytics/providers/Microsoft.Network/networkInterfaces/etl-runner-01-nic",
+      "properties": {
+        "ipConfigurations": [
+          {
+            "name": "ipconfig1",
+            "properties": {
+              "privateIPAddress": "10.41.1.20",
+              "primary": true
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "/subscriptions/00000000-aaaa-4bbb-8ccc-000000000001/resourceGroups/rg-network/providers/Microsoft.Network/networkInterfaces/vpn-gw-vm-01-nic",
+      "properties": {
+        "ipConfigurations": [
+          {
+            "name": "ipconfig1",
+            "properties": {
+              "privateIPAddress": "10.41.0.4",
+              "primary": true
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "/subscriptions/00000000-aaaa-4bbb-8ccc-000000000001/resourceGroups/rg-qa/providers/Microsoft.Network/networkInterfaces/test-agent-01-nic",
+      "properties": {
+        "ipConfigurations": [
+          {
+            "name": "ipconfig1",
+            "properties": {
+              "privateIPAddress": "10.42.1.10",
+              "primary": true
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "/subscriptions/00000000-aaaa-4bbb-8ccc-000000000001/resourceGroups/rg-qa/providers/Microsoft.Network/networkInterfaces/test-agent-02-nic",
+      "properties": {
+        "ipConfigurations": [
+          {
+            "name": "ipconfig1",
+            "properties": {
+              "privateIPAddress": "10.42.1.11",
+              "primary": true
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "/subscriptions/00000000-aaaa-4bbb-8ccc-000000000001/resourceGroups/rg-devops/providers/Microsoft.Network/networkInterfaces/img-builder-01-nic",
+      "properties": {
+        "ipConfigurations": [
+          {
+            "name": "ipconfig1",
+            "properties": {
+              "privateIPAddress": "10.42.2.10",
+              "primary": true
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "/subscriptions/00000000-aaaa-4bbb-8ccc-000000000001/resourceGroups/rg-sap/providers/Microsoft.Network/networkInterfaces/sap-app-01-nic",
+      "properties": {
+        "ipConfigurations": [
+          {
+            "name": "ipconfig1",
+            "properties": {
+              "privateIPAddress": "10.40.5.10",
+              "primary": true
+            }
+          }
+        ]
+      }
+    }
+  ]
+}

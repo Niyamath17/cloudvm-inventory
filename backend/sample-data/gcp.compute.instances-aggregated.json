@@ -1,0 +1,466 @@
+{
+  "_meta": {
+    "mock": true,
+    "label": "MOCK DATA – not collected from a real Google Cloud project",
+    "provider": "GCP",
+    "shape": "Trimmed Compute Engine 'instances.aggregatedList' response (items keyed by zone), plus machine types (vCPU/memory), which the instance resource only references by URL.",
+    "scope": {
+      "projectId": "cloudvm-demo-project (placeholder)",
+      "zones": [
+        "asia-south1-a",
+        "asia-south1-b",
+        "us-central1-b",
+        "us-central1-c",
+        "europe-west1-c"
+      ]
+    },
+    "generatedOn": "2026-10-30",
+    "edgeCases": [
+      "Memory in MB (machineTypes.memoryMb); custom machine type 'custom-6-23040' encodes 6 vCPU / 23040 MB in its name",
+      "diskSizeGb is a STRING (GCP returns int64 values as strings)",
+      "GCP 'TERMINATED' means stopped, not deleted",
+      "Unusual statuses: STAGING, SUSPENDED, REPAIRING, STOPPING",
+      "'hostname' is present only when a custom hostname was set (2 of 12)",
+      "OS is only discoverable from the boot disk license URL",
+      "old-etl-01 has no owner label"
+    ]
+  },
+  "items": {
+    "zones/asia-south1-a": {
+      "instances": [
+        {
+          "id": "4417300000000000001",
+          "name": "ml-train-01",
+          "zone": "https://www.googleapis.com/compute/v1/projects/cloudvm-demo-project/zones/asia-south1-a",
+          "machineType": "https://www.googleapis.com/compute/v1/projects/cloudvm-demo-project/zones/asia-south1-a/machineTypes/n2-standard-8",
+          "status": "RUNNING",
+          "creationTimestamp": "2026-03-14T09:12:33.000-07:00",
+          "networkInterfaces": [
+            {
+              "name": "nic0",
+              "network": "https://www.googleapis.com/compute/v1/projects/cloudvm-demo-project/global/networks/default",
+              "networkIP": "10.50.1.10"
+            }
+          ],
+          "disks": [
+            {
+              "deviceName": "ml-train-01-disk0",
+              "boot": true,
+              "diskSizeGb": "200",
+              "licenses": [
+                "https://www.googleapis.com/compute/v1/projects/ubuntu-os-cloud/global/licenses/ubuntu-2204-lts"
+              ]
+            },
+            {
+              "deviceName": "ml-train-01-disk1",
+              "boot": false,
+              "diskSizeGb": "1000"
+            }
+          ],
+          "labels": {
+            "env": "prod",
+            "owner": "ml-team"
+          }
+        },
+        {
+          "id": "4417300000000000002",
+          "name": "ml-train-02",
+          "zone": "https://www.googleapis.com/compute/v1/projects/cloudvm-demo-project/zones/asia-south1-a",
+          "machineType": "https://www.googleapis.com/compute/v1/projects/cloudvm-demo-project/zones/asia-south1-a/machineTypes/n2-standard-8",
+          "status": "TERMINATED",
+          "creationTimestamp": "2026-03-14T09:12:33.000-07:00",
+          "networkInterfaces": [
+            {
+              "name": "nic0",
+              "network": "https://www.googleapis.com/compute/v1/projects/cloudvm-demo-project/global/networks/default",
+              "networkIP": "10.50.1.11"
+            }
+          ],
+          "disks": [
+            {
+              "deviceName": "ml-train-02-disk0",
+              "boot": true,
+              "diskSizeGb": "200",
+              "licenses": [
+                "https://www.googleapis.com/compute/v1/projects/ubuntu-os-cloud/global/licenses/ubuntu-2204-lts"
+              ]
+            },
+            {
+              "deviceName": "ml-train-02-disk1",
+              "boot": false,
+              "diskSizeGb": "1000"
+            }
+          ],
+          "labels": {
+            "env": "prod",
+            "owner": "ml-team"
+          }
+        },
+        {
+          "id": "4417300000000000012",
+          "name": "ci-runner-01",
+          "zone": "https://www.googleapis.com/compute/v1/projects/cloudvm-demo-project/zones/asia-south1-a",
+          "machineType": "https://www.googleapis.com/compute/v1/projects/cloudvm-demo-project/zones/asia-south1-a/machineTypes/e2-standard-4",
+          "status": "STOPPING",
+          "creationTimestamp": "2026-03-14T09:12:33.000-07:00",
+          "networkInterfaces": [
+            {
+              "name": "nic0",
+              "network": "https://www.googleapis.com/compute/v1/projects/cloudvm-demo-project/global/networks/default",
+              "networkIP": "10.50.9.10"
+            }
+          ],
+          "disks": [
+            {
+              "deviceName": "ci-runner-01-disk0",
+              "boot": true,
+              "diskSizeGb": "100",
+              "licenses": [
+                "https://www.googleapis.com/compute/v1/projects/ubuntu-os-cloud/global/licenses/ubuntu-2204-lts"
+              ]
+            }
+          ],
+          "labels": {
+            "env": "tools",
+            "owner": "devops"
+          }
+        }
+      ]
+    },
+    "zones/asia-south1-b": {
+      "instances": [
+        {
+          "id": "4417300000000000003",
+          "name": "ml-inference-01",
+          "zone": "https://www.googleapis.com/compute/v1/projects/cloudvm-demo-project/zones/asia-south1-b",
+          "machineType": "https://www.googleapis.com/compute/v1/projects/cloudvm-demo-project/zones/asia-south1-b/machineTypes/custom-6-23040",
+          "status": "RUNNING",
+          "creationTimestamp": "2026-03-14T09:12:33.000-07:00",
+          "networkInterfaces": [
+            {
+              "name": "nic0",
+              "network": "https://www.googleapis.com/compute/v1/projects/cloudvm-demo-project/global/networks/default",
+              "networkIP": "10.50.2.10",
+              "accessConfigs": [
+                {
+                  "type": "ONE_TO_ONE_NAT",
+                  "name": "External NAT",
+                  "natIP": "34.93.20.10"
+                }
+              ]
+            }
+          ],
+          "disks": [
+            {
+              "deviceName": "ml-inference-01-disk0",
+              "boot": true,
+              "diskSizeGb": "100",
+              "licenses": [
+                "https://www.googleapis.com/compute/v1/projects/ubuntu-os-cloud/global/licenses/ubuntu-2204-lts"
+              ]
+            }
+          ],
+          "labels": {
+            "env": "prod",
+            "owner": "ml-team"
+          },
+          "hostname": "inference-01.ml.example.internal"
+        },
+        {
+          "id": "4417300000000000004",
+          "name": "gke-proxy-01",
+          "zone": "https://www.googleapis.com/compute/v1/projects/cloudvm-demo-project/zones/asia-south1-b",
+          "machineType": "https://www.googleapis.com/compute/v1/projects/cloudvm-demo-project/zones/asia-south1-b/machineTypes/e2-medium",
+          "status": "RUNNING",
+          "creationTimestamp": "2026-03-14T09:12:33.000-07:00",
+          "networkInterfaces": [
+            {
+              "name": "nic0",
+              "network": "https://www.googleapis.com/compute/v1/projects/cloudvm-demo-project/global/networks/default",
+              "networkIP": "10.50.2.20"
+            }
+          ],
+          "disks": [
+            {
+              "deviceName": "gke-proxy-01-disk0",
+              "boot": true,
+              "diskSizeGb": "20",
+              "licenses": [
+                "https://www.googleapis.com/compute/v1/projects/cos-cloud/global/licenses/cos"
+              ]
+            }
+          ],
+          "labels": {
+            "env": "prod",
+            "owner": "platform-team"
+          }
+        }
+      ]
+    },
+    "zones/us-central1-b": {
+      "instances": [
+        {
+          "id": "4417300000000000005",
+          "name": "analytics-db-01",
+          "zone": "https://www.googleapis.com/compute/v1/projects/cloudvm-demo-project/zones/us-central1-b",
+          "machineType": "https://www.googleapis.com/compute/v1/projects/cloudvm-demo-project/zones/us-central1-b/machineTypes/e2-standard-4",
+          "status": "RUNNING",
+          "creationTimestamp": "2026-03-14T09:12:33.000-07:00",
+          "networkInterfaces": [
+            {
+              "name": "nic0",
+              "network": "https://www.googleapis.com/compute/v1/projects/cloudvm-demo-project/global/networks/default",
+              "networkIP": "10.60.1.10"
+            }
+          ],
+          "disks": [
+            {
+              "deviceName": "analytics-db-01-disk0",
+              "boot": true,
+              "diskSizeGb": "100",
+              "licenses": [
+                "https://www.googleapis.com/compute/v1/projects/debian-cloud/global/licenses/debian-12-bookworm"
+              ]
+            },
+            {
+              "deviceName": "analytics-db-01-disk1",
+              "boot": false,
+              "diskSizeGb": "500"
+            }
+          ],
+          "labels": {
+            "env": "prod",
+            "owner": "data-eng",
+            "tier": "db"
+          },
+          "hostname": "analytics-db-01.corp.example.internal"
+        },
+        {
+          "id": "4417300000000000006",
+          "name": "analytics-db-02",
+          "zone": "https://www.googleapis.com/compute/v1/projects/cloudvm-demo-project/zones/us-central1-b",
+          "machineType": "https://www.googleapis.com/compute/v1/projects/cloudvm-demo-project/zones/us-central1-b/machineTypes/e2-standard-4",
+          "status": "STAGING",
+          "creationTimestamp": "2026-03-14T09:12:33.000-07:00",
+          "networkInterfaces": [
+            {
+              "name": "nic0",
+              "network": "https://www.googleapis.com/compute/v1/projects/cloudvm-demo-project/global/networks/default",
+              "networkIP": "10.60.1.11"
+            }
+          ],
+          "disks": [
+            {
+              "deviceName": "analytics-db-02-disk0",
+              "boot": true,
+              "diskSizeGb": "100",
+              "licenses": [
+                "https://www.googleapis.com/compute/v1/projects/debian-cloud/global/licenses/debian-12-bookworm"
+              ]
+            },
+            {
+              "deviceName": "analytics-db-02-disk1",
+              "boot": false,
+              "diskSizeGb": "500"
+            }
+          ],
+          "labels": {
+            "env": "prod",
+            "owner": "data-eng",
+            "tier": "db"
+          }
+        }
+      ]
+    },
+    "zones/us-central1-c": {
+      "instances": [
+        {
+          "id": "4417300000000000007",
+          "name": "win-jumpbox-01",
+          "zone": "https://www.googleapis.com/compute/v1/projects/cloudvm-demo-project/zones/us-central1-c",
+          "machineType": "https://www.googleapis.com/compute/v1/projects/cloudvm-demo-project/zones/us-central1-c/machineTypes/e2-standard-4",
+          "status": "RUNNING",
+          "creationTimestamp": "2026-03-14T09:12:33.000-07:00",
+          "networkInterfaces": [
+            {
+              "name": "nic0",
+              "network": "https://www.googleapis.com/compute/v1/projects/cloudvm-demo-project/global/networks/default",
+              "networkIP": "10.60.2.10",
+              "accessConfigs": [
+                {
+                  "type": "ONE_TO_ONE_NAT",
+                  "name": "External NAT",
+                  "natIP": "35.192.1.10"
+                }
+              ]
+            }
+          ],
+          "disks": [
+            {
+              "deviceName": "win-jumpbox-01-disk0",
+              "boot": true,
+              "diskSizeGb": "100",
+              "licenses": [
+                "https://www.googleapis.com/compute/v1/projects/windows-cloud/global/licenses/windows-server-2022-dc"
+              ]
+            }
+          ],
+          "labels": {
+            "env": "prod",
+            "owner": "it-ops"
+          }
+        },
+        {
+          "id": "4417300000000000008",
+          "name": "dev-notebook-01",
+          "zone": "https://www.googleapis.com/compute/v1/projects/cloudvm-demo-project/zones/us-central1-c",
+          "machineType": "https://www.googleapis.com/compute/v1/projects/cloudvm-demo-project/zones/us-central1-c/machineTypes/e2-medium",
+          "status": "SUSPENDED",
+          "creationTimestamp": "2026-03-14T09:12:33.000-07:00",
+          "networkInterfaces": [
+            {
+              "name": "nic0",
+              "network": "https://www.googleapis.com/compute/v1/projects/cloudvm-demo-project/global/networks/default",
+              "networkIP": "10.60.3.10"
+            }
+          ],
+          "disks": [
+            {
+              "deviceName": "dev-notebook-01-disk0",
+              "boot": true,
+              "diskSizeGb": "50",
+              "licenses": [
+                "https://www.googleapis.com/compute/v1/projects/debian-cloud/global/licenses/debian-12-bookworm"
+              ]
+            }
+          ],
+          "labels": {
+            "env": "dev",
+            "owner": "data-eng"
+          }
+        }
+      ]
+    },
+    "zones/europe-west1-c": {
+      "instances": [
+        {
+          "id": "4417300000000000009",
+          "name": "web-eu-01",
+          "zone": "https://www.googleapis.com/compute/v1/projects/cloudvm-demo-project/zones/europe-west1-c",
+          "machineType": "https://www.googleapis.com/compute/v1/projects/cloudvm-demo-project/zones/europe-west1-c/machineTypes/e2-medium",
+          "status": "RUNNING",
+          "creationTimestamp": "2026-03-14T09:12:33.000-07:00",
+          "networkInterfaces": [
+            {
+              "name": "nic0",
+              "network": "https://www.googleapis.com/compute/v1/projects/cloudvm-demo-project/global/networks/default",
+              "networkIP": "10.70.1.10",
+              "accessConfigs": [
+                {
+                  "type": "ONE_TO_ONE_NAT",
+                  "name": "External NAT",
+                  "natIP": "34.76.1.10"
+                }
+              ]
+            }
+          ],
+          "disks": [
+            {
+              "deviceName": "web-eu-01-disk0",
+              "boot": true,
+              "diskSizeGb": "20",
+              "licenses": [
+                "https://www.googleapis.com/compute/v1/projects/debian-cloud/global/licenses/debian-12-bookworm"
+              ]
+            }
+          ],
+          "labels": {
+            "env": "prod",
+            "owner": "web-team"
+          }
+        },
+        {
+          "id": "4417300000000000010",
+          "name": "web-eu-02",
+          "zone": "https://www.googleapis.com/compute/v1/projects/cloudvm-demo-project/zones/europe-west1-c",
+          "machineType": "https://www.googleapis.com/compute/v1/projects/cloudvm-demo-project/zones/europe-west1-c/machineTypes/e2-medium",
+          "status": "REPAIRING",
+          "creationTimestamp": "2026-03-14T09:12:33.000-07:00",
+          "networkInterfaces": [
+            {
+              "name": "nic0",
+              "network": "https://www.googleapis.com/compute/v1/projects/cloudvm-demo-project/global/networks/default",
+              "networkIP": "10.70.1.11",
+              "accessConfigs": [
+                {
+                  "type": "ONE_TO_ONE_NAT",
+                  "name": "External NAT",
+                  "natIP": "34.76.1.11"
+                }
+              ]
+            }
+          ],
+          "disks": [
+            {
+              "deviceName": "web-eu-02-disk0",
+              "boot": true,
+              "diskSizeGb": "20",
+              "licenses": [
+                "https://www.googleapis.com/compute/v1/projects/debian-cloud/global/licenses/debian-12-bookworm"
+              ]
+            }
+          ],
+          "labels": {
+            "env": "prod",
+            "owner": "web-team"
+          }
+        },
+        {
+          "id": "4417300000000000011",
+          "name": "old-etl-01",
+          "zone": "https://www.googleapis.com/compute/v1/projects/cloudvm-demo-project/zones/europe-west1-c",
+          "machineType": "https://www.googleapis.com/compute/v1/projects/cloudvm-demo-project/zones/europe-west1-c/machineTypes/e2-standard-4",
+          "status": "TERMINATED",
+          "creationTimestamp": "2026-03-14T09:12:33.000-07:00",
+          "networkInterfaces": [
+            {
+              "name": "nic0",
+              "network": "https://www.googleapis.com/compute/v1/projects/cloudvm-demo-project/global/networks/default",
+              "networkIP": "10.70.2.10"
+            }
+          ],
+          "disks": [
+            {
+              "deviceName": "old-etl-01-disk0",
+              "boot": true,
+              "diskSizeGb": "100",
+              "licenses": [
+                "https://www.googleapis.com/compute/v1/projects/debian-cloud/global/licenses/debian-12-bookworm"
+              ]
+            }
+          ],
+          "labels": {
+            "env": "prod"
+          }
+        }
+      ]
+    }
+  },
+  "machineTypes": [
+    {
+      "name": "e2-medium",
+      "guestCpus": 2,
+      "memoryMb": 4096
+    },
+    {
+      "name": "e2-standard-4",
+      "guestCpus": 4,
+      "memoryMb": 16384
+    },
+    {
+      "name": "n2-standard-8",
+      "guestCpus": 8,
+      "memoryMb": 32768
+    }
+  ]
+}

@@ -1,8 +1,23 @@
-// CloudVM – Prisma schema
+// CloudVM – Prisma schema (M1)
 //
-// M0: datasource + generator only. Domain models (VirtualMachine,
-// CollectionRun, SyncRun, DriftReport, ...) are added in M1 following
-// docs/ARCHITECTURE_PLAN.md §5.
+// Design rationale and ER diagram: docs/DATABASE.md
+//
+//   VirtualMachine      one row per VM, identified by (provider, externalId) – externalId is fully scoped
+//   VmSyncState         per-VM, per-target sync state (real NetBox and simulation are kept apart)
+//   CollectionRun       one "collect inventory" execution (manual or scheduled)
+//   ProviderRunResult   per-provider outcome inside a CollectionRun
+//   SyncRun             one push of the inventory to a target (NETBOX or SIMULATION)
+//   SyncEvent           one per-VM decision inside a SyncRun (audit trail)
+//   DriftReport         one comparison of local inventory vs a target
+//   DriftItem           one finding inside a DriftReport
+//   SimulatedNetboxVm   SIMULATION ONLY – local stand-in for NetBox's virtual-machines table
+//
+// Conventions
+//   - Our own IDs are UUIDs; SimulatedNetboxVm uses integer IDs like real NetBox.
+//   - Tables are mapped to snake_case plural names; column names stay camelCase.
+//   - Memory in MB (NetBox's unit); disk in GB (converted to NetBox's MB in M4).
+//   - Two CHECK constraints that Prisma cannot express are added to the init
+//     migration from prisma/sql/init_check_constraints.sql (see docs/DATABASE.md).
 
 generator client {
   provider = "prisma-client-js"
@@ -11,4 +26,352 @@ generator client {
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Enums
+// ─────────────────────────────────────────────────────────────────────────────
+
+enum Provider {
+  AWS
+  AZURE
+  GCP
+  PROXMOX
+  VMWARE
+}
+
+/// Normalized power state of a VM that EXISTS. The provider's original value
+/// is always kept in VirtualMachine.rawPowerState.
+enum PowerState {
+  RUNNING
+  STOPPED
+  SUSPENDED
+  UNKNOWN
+}
+
+/// Does the VM still exist at its provider? Independent of power state.
+enum Lifecycle {
+  ACTIVE
+  DECOMMISSIONED
+}
+
+/// Why a VM was marked DECOMMISSIONED.
+enum DecommissionReason {
+  PROVIDER_TERMINATED // provider explicitly reported deletion (e.g. AWS "shutting-down"/"terminated")
+  MISSING_FROM_PROVIDER // absent from a SUCCESSFUL collection of its provider/account
+}
+
+/// Where a record came from. All provider data in this prototype is MOCK.
+enum DataSource {
+  MOCK
+  LIVE
+}
+
+/// Which NetBox a sync/drift result refers to.
+enum SyncTarget {
+  NETBOX // real NetBox REST API (NETBOX_MODE=live)
+  SIMULATION // simulated_netbox_vms table (NETBOX_MODE=simulation) – never reported as a real sync
+}
+
+enum RunStatus {
+  RUNNING
+  SUCCESS
+  PARTIAL // some providers/VMs failed, others succeeded
+  FAILED
+  SKIPPED // e.g. scheduled run skipped because another run was in progress
+}
+
+enum RunTrigger {
+  MANUAL
+  SCHEDULED
+}
+
+enum SyncAction {
+  CREATE
+  UPDATE
+  DECOMMISSION
+  SKIP
+}
+
+/// Per-VM, per-target synchronization state.
+enum SyncState {
+  PENDING // never synced to this target, or changed since the last successful sync
+  SYNCED
+  FAILED
+  DUPLICATE // more than one target record matched – not written, needs a human
+}
+
+enum DriftType {
+  MISSING_IN_NETBOX
+  ORPHAN_IN_NETBOX
+  RESOURCE_MISMATCH
+  POWER_STATE_MISMATCH
+  DUPLICATE
+}
+
+enum DriftSeverity {
+  INFO
+  WARNING
+  CRITICAL
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Inventory
+// ─────────────────────────────────────────────────────────────────────────────
+
+model VirtualMachine {
+  id String @id @default(uuid())
+
+  // --- Identity (built ONLY by src/domain/identity.ts) ------------------------
+  provider   Provider
+  /// Fully scoped, stable identity – unique per provider:
+  ///   AWS     "<accountId>/<region>/<instanceId>"
+  ///   AZURE   "<subscriptionId>/<vmId>"
+  ///   GCP     "<projectId>/<instanceId>"
+  ///   PROXMOX "<clusterName>/<vmid>"
+  ///   VMWARE  "<vCenter host>/<instanceUuid>"
+  externalId String
+  /// The provider's own, unscoped ID (i-…, vmId, numeric id, vmid, instance UUID) – for display/search.
+  nativeId   String
+  /// Top-level scope: AWS account, Azure subscription, GCP project, Proxmox cluster, vCenter host.
+  account    String
+
+  // --- Normalized attributes --------------------------------------------------
+  name          String
+  hostname      String? // null when unknown (no guest agent, VM stopped, not reported)
+  ipAddresses   String[]
+  osName        String?
+  cpuCores      Int?
+  memoryMb      Int?
+  diskGb        Int? // total provisioned disk
+  region        String?
+  cluster       String?
+  powerState    PowerState @default(UNKNOWN)
+  rawPowerState String? // provider's own word: "terminated", "PowerState/deallocated", "POWERED_OFF", ...
+  owner         String?
+  tags          Json       @default("{}") // { "env": "prod", ... } – string values
+
+  // --- Provenance -------------------------------------------------------------
+  dataSource  DataSource
+  rawData     Json // original provider payload (audit/debug)
+  fingerprint String // hash of normalized, sync-relevant fields (change detection)
+
+  // --- Lifecycle (CHECK constraint keeps these three consistent) -------------
+  lifecycle          Lifecycle           @default(ACTIVE)
+  decommissionedAt   DateTime?
+  decommissionReason DecommissionReason?
+  firstDiscoveredAt  DateTime            @default(now())
+  lastDiscoveredAt   DateTime
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  syncStates VmSyncState[]
+  syncEvents SyncEvent[]
+  driftItems DriftItem[]
+
+  /// THE duplicate-prevention rule: one row per scoped VM identity per provider.
+  @@unique([provider, externalId])
+  @@index([provider, account])
+  @@index([lifecycle, powerState])
+  @@index([name])
+  @@index([lastDiscoveredAt])
+  @@map("virtual_machines")
+}
+
+/// Sync state of one VM against ONE target. Real NetBox and the simulation each
+/// get their own row, so switching NETBOX_MODE can never reuse the other target's
+/// IDs or "already synced" fingerprints.
+///
+/// Exactly one ID column is used per target (enforced by CHECK constraint
+/// vm_sync_states_target_id_check):
+///   NETBOX     -> netboxId      (ID in the real NetBox; simulatedVmId must be NULL)
+///   SIMULATION -> simulatedVmId (FK to simulated_netbox_vms; netboxId must be NULL)
+model VmSyncState {
+  id     String         @id @default(uuid())
+  vmId   String
+  vm     VirtualMachine @relation(fields: [vmId], references: [id], onDelete: Cascade)
+  target SyncTarget
+
+  netboxId      Int?               @unique // one real NetBox record belongs to at most one local VM
+  simulatedVmId Int?               @unique // FK: DB guarantees the simulated record exists
+  simulatedVm   SimulatedNetboxVm? @relation(fields: [simulatedVmId], references: [id], onDelete: SetNull)
+
+  state             SyncState @default(PENDING)
+  syncedFingerprint String? // VirtualMachine.fingerprint at last successful sync to THIS target
+  lastSyncedAt      DateTime?
+  lastError         String?
+  updatedAt         DateTime  @updatedAt
+
+  /// One state row per VM per target.
+  @@unique([vmId, target])
+  @@index([target, state])
+  @@map("vm_sync_states")
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Collection history
+// ─────────────────────────────────────────────────────────────────────────────
+
+model CollectionRun {
+  id         String     @id @default(uuid())
+  trigger    RunTrigger
+  status     RunStatus  @default(RUNNING)
+  startedAt  DateTime   @default(now())
+  finishedAt DateTime?
+
+  discoveredCount     Int @default(0) // valid VMs returned by all providers
+  createdCount        Int @default(0) // new rows in virtual_machines
+  updatedCount        Int @default(0) // existing rows whose data changed
+  unchangedCount      Int @default(0)
+  decommissionedCount Int @default(0)
+  invalidCount        Int @default(0) // records rejected by normalization/validation
+
+  errors Json @default("[]") // [{ provider?, externalId?, message }]
+
+  providerResults ProviderRunResult[]
+  syncRun         SyncRun?
+
+  @@index([startedAt])
+  @@map("collection_runs")
+}
+
+model ProviderRunResult {
+  id           String        @id @default(uuid())
+  runId        String
+  run          CollectionRun @relation(fields: [runId], references: [id], onDelete: Cascade)
+  provider     Provider
+  dataSource   DataSource // MOCK adapter or LIVE adapter
+  status       RunStatus
+  vmCount      Int           @default(0)
+  invalidCount Int           @default(0)
+  durationMs   Int           @default(0)
+  error        String?
+
+  /// A provider is collected at most once per run.
+  @@unique([runId, provider])
+  @@map("provider_run_results")
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Synchronization history
+// ─────────────────────────────────────────────────────────────────────────────
+
+model SyncRun {
+  id     String     @id @default(uuid())
+  target SyncTarget
+  status RunStatus  @default(RUNNING)
+  dryRun Boolean    @default(false)
+
+  /// Set when the sync ran as part of a collection; null for a manual "sync only".
+  collectionRunId String?        @unique
+  collectionRun   CollectionRun? @relation(fields: [collectionRunId], references: [id], onDelete: SetNull)
+
+  startedAt  DateTime  @default(now())
+  finishedAt DateTime?
+
+  createdCount        Int @default(0)
+  updatedCount        Int @default(0)
+  decommissionedCount Int @default(0)
+  skippedCount        Int @default(0)
+  failedCount         Int @default(0)
+  duplicateCount      Int @default(0)
+
+  error  String? // run-level failure (e.g. NetBox unreachable)
+  events SyncEvent[]
+
+  @@index([target, startedAt])
+  @@map("sync_runs")
+}
+
+model SyncEvent {
+  id        String  @id @default(uuid())
+  syncRunId String
+  syncRun   SyncRun @relation(fields: [syncRunId], references: [id], onDelete: Cascade)
+
+  vmId   String?
+  vm     VirtualMachine? @relation(fields: [vmId], references: [id], onDelete: SetNull)
+  vmName String // snapshot, so history stays readable if the VM row is ever deleted
+
+  action     SyncAction
+  success    Boolean
+  /// Record ID in syncRun.target (NetBox ID or simulated ID). History only –
+  /// never read back to drive a write; VmSyncState is the source for that.
+  remoteId   Int?
+  httpStatus Int? // NETBOX target only
+  error      String?
+  diff       Json? // { field: { from, to } } for UPDATE
+
+  createdAt DateTime @default(now())
+
+  @@index([syncRunId])
+  @@index([vmId])
+  @@map("sync_events")
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Drift reporting
+// ─────────────────────────────────────────────────────────────────────────────
+
+model DriftReport {
+  id          String     @id @default(uuid())
+  target      SyncTarget
+  generatedAt DateTime   @default(now())
+  totalItems  Int        @default(0)
+  summary     Json       @default("{}") // { MISSING_IN_NETBOX: 3, ORPHAN_IN_NETBOX: 1, ... }
+
+  items DriftItem[]
+
+  @@index([target, generatedAt])
+  @@map("drift_reports")
+}
+
+model DriftItem {
+  id       String      @id @default(uuid())
+  reportId String
+  report   DriftReport @relation(fields: [reportId], references: [id], onDelete: Cascade)
+
+  type     DriftType
+  severity DriftSeverity @default(WARNING)
+
+  vmId     String? // local side (null for ORPHAN_IN_NETBOX)
+  vm       VirtualMachine? @relation(fields: [vmId], references: [id], onDelete: SetNull)
+  remoteId Int? // record ID in report.target (null for MISSING_IN_NETBOX)
+  name     String // VM name snapshot
+
+  field    String? // e.g. "memoryMb", "powerState"
+  expected String? // value in collected inventory
+  actual   String? // value found in the target
+
+  @@index([reportId, type])
+  @@map("drift_items")
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// NetBox SIMULATION (never read or written when NETBOX_MODE=live)
+// ─────────────────────────────────────────────────────────────────────────────
+
+/// SIMULATION ONLY. Mirrors the subset of NetBox's virtualization.VirtualMachine
+/// fields CloudVM writes, with NetBox's units (memory MB, disk MB) and status
+/// values ("active", "offline", "decommissioning", ...). NOT real NetBox records.
+model SimulatedNetboxVm {
+  id          Int      @id @default(autoincrement())
+  name        String
+  clusterName String // NetBox: VM name is unique per cluster (+ tenant)
+  status      String // NetBox status value, e.g. "active"
+  serial      String? // CloudVM writes "<provider>:<externalId>" (NOT unique – same as NetBox)
+  vcpus       Float? // NetBox allows fractional vCPUs
+  memory      Int? // MB
+  disk        Int? // MB
+  tags        String[]
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  syncState VmSyncState?
+
+  /// Mirrors NetBox's own uniqueness rule, so duplicates behave the same in simulation.
+  @@unique([clusterName, name])
+  @@index([serial])
+  @@map("simulated_netbox_vms")
 }

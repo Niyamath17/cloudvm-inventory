@@ -1,0 +1,240 @@
+{
+  "_meta": {
+    "mock": true,
+    "label": "MOCK DATA – not collected from a real Proxmox VE cluster",
+    "provider": "PROXMOX",
+    "shape": "Trimmed Proxmox VE API 'GET /cluster/resources?type=vm' response per cluster, plus QEMU guest-agent results (get-host-name / network-get-interfaces), which come from per-VM agent endpoints.",
+    "scope": {
+      "clusters": [
+        "pve-dc1",
+        "pve-lab"
+      ]
+    },
+    "generatedOn": "2026-10-30",
+    "edgeCases": [
+      "Memory and disk in BYTES (maxmem / maxdisk)",
+      "VMID 100 exists in BOTH clusters – VMIDs are only unique per cluster",
+      "vmid 9000 is a template (template=1) and is not a real VM",
+      "vmid 210 is an LXC container (type 'lxc'), not a QEMU VM",
+      "Tags are a single ';'-separated string; some VMs have none; owner is encoded as 'owner-<team>'",
+      "Status 'unknown' for VMs on an offline node",
+      "Guest-agent data (hostname / IPs) missing for stopped VMs and VMs without the agent",
+      "No OS information in /cluster/resources (only 'ostype' on some entries)"
+    ]
+  },
+  "clusters": [
+    {
+      "cluster": "pve-dc1",
+      "data": [
+        {
+          "id": "qemu/100",
+          "vmid": 100,
+          "name": "dns-01",
+          "node": "pve-node1",
+          "type": "qemu",
+          "status": "running",
+          "maxcpu": 2,
+          "maxmem": 2147483648,
+          "maxdisk": 34359738368,
+          "tags": "prod;infra;owner-network-team",
+          "template": 0,
+          "uptime": 864000,
+          "ostype": "l26"
+        },
+        {
+          "id": "qemu/101",
+          "vmid": 101,
+          "name": "gitlab-01",
+          "node": "pve-node1",
+          "type": "qemu",
+          "status": "running",
+          "maxcpu": 8,
+          "maxmem": 17179869184,
+          "maxdisk": 536870912000,
+          "tags": "prod;devtools;owner-devops",
+          "template": 0,
+          "uptime": 864000,
+          "ostype": "l26"
+        },
+        {
+          "id": "qemu/102",
+          "vmid": 102,
+          "name": "monitoring-01",
+          "node": "pve-node2",
+          "type": "qemu",
+          "status": "running",
+          "maxcpu": 4,
+          "maxmem": 8589934592,
+          "maxdisk": 214748364800,
+          "tags": "prod;observability;owner-platform-team",
+          "template": 0,
+          "uptime": 864000,
+          "ostype": "l26"
+        },
+        {
+          "id": "qemu/103",
+          "vmid": 103,
+          "name": "file-srv-01",
+          "node": "pve-node2",
+          "type": "qemu",
+          "status": "running",
+          "maxcpu": 4,
+          "maxmem": 8589934592,
+          "maxdisk": 2199023255552,
+          "tags": "prod;owner-it-ops",
+          "template": 0,
+          "uptime": 864000,
+          "ostype": "win11"
+        },
+        {
+          "id": "qemu/104",
+          "vmid": 104,
+          "name": "old-crm-01",
+          "node": "pve-node2",
+          "type": "qemu",
+          "status": "stopped",
+          "maxcpu": 2,
+          "maxmem": 4294967296,
+          "maxdisk": 107374182400,
+          "tags": "deprecated",
+          "template": 0,
+          "uptime": 0
+        },
+        {
+          "id": "qemu/105",
+          "vmid": 105,
+          "name": "build-agent-01",
+          "node": "pve-node3",
+          "type": "qemu",
+          "status": "unknown",
+          "maxcpu": 4,
+          "maxmem": 8589934592,
+          "maxdisk": 107374182400,
+          "tags": "ci;owner-devops",
+          "template": 0,
+          "uptime": 0,
+          "ostype": "l26"
+        },
+        {
+          "id": "lxc/210",
+          "vmid": 210,
+          "name": "nginx-lxc-01",
+          "node": "pve-node1",
+          "type": "lxc",
+          "status": "running",
+          "maxcpu": 1,
+          "maxmem": 536870912,
+          "maxdisk": 8589934592,
+          "tags": "prod;web;owner-web-team",
+          "template": 0,
+          "uptime": 864000
+        },
+        {
+          "id": "qemu/9000",
+          "vmid": 9000,
+          "name": "ubuntu-2204-template",
+          "node": "pve-node1",
+          "type": "qemu",
+          "status": "stopped",
+          "maxcpu": 2,
+          "maxmem": 2147483648,
+          "maxdisk": 34359738368,
+          "tags": "template",
+          "template": 1,
+          "uptime": 0
+        }
+      ],
+      "agent": {
+        "100": {
+          "hostname": "dns-01.dc1.example.internal",
+          "ipAddresses": [
+            "10.80.1.10",
+            "fe80::be24:11ff:fe2a:1"
+          ]
+        },
+        "101": {
+          "hostname": "gitlab-01.dc1.example.internal",
+          "ipAddresses": [
+            "10.80.1.11"
+          ]
+        },
+        "102": {
+          "hostname": "monitoring-01",
+          "ipAddresses": [
+            "10.80.1.12"
+          ]
+        },
+        "103": {
+          "hostname": "FILESRV01",
+          "ipAddresses": [
+            "10.80.1.13"
+          ]
+        },
+        "210": {
+          "hostname": "nginx-lxc-01",
+          "ipAddresses": [
+            "10.80.1.30"
+          ]
+        }
+      }
+    },
+    {
+      "cluster": "pve-lab",
+      "data": [
+        {
+          "id": "qemu/100",
+          "vmid": 100,
+          "name": "lab-k8s-master",
+          "node": "lab-node1",
+          "type": "qemu",
+          "status": "running",
+          "maxcpu": 4,
+          "maxmem": 8589934592,
+          "maxdisk": 107374182400,
+          "tags": "lab;k8s;owner-platform-team",
+          "template": 0,
+          "uptime": 864000,
+          "ostype": "l26"
+        },
+        {
+          "id": "qemu/101",
+          "vmid": 101,
+          "name": "lab-k8s-worker",
+          "node": "lab-node1",
+          "type": "qemu",
+          "status": "running",
+          "maxcpu": 4,
+          "maxmem": 17179869184,
+          "maxdisk": 214748364800,
+          "tags": "lab;k8s",
+          "template": 0,
+          "uptime": 864000,
+          "ostype": "l26"
+        },
+        {
+          "id": "qemu/102",
+          "vmid": 102,
+          "name": "lab-win-test",
+          "node": "lab-node1",
+          "type": "qemu",
+          "status": "stopped",
+          "maxcpu": 2,
+          "maxmem": 4294967296,
+          "maxdisk": 85899345920,
+          "tags": "",
+          "template": 0,
+          "uptime": 0,
+          "ostype": "win10"
+        }
+      ],
+      "agent": {
+        "100": {
+          "hostname": "lab-k8s-master",
+          "ipAddresses": [
+            "192.168.50.10"
+          ]
+        }
+      }
+    }
+  ]
+}
