@@ -14,6 +14,7 @@ import {
   type NbVmWrite,
   type NetBoxGateway,
 } from './NetBoxGateway.js';
+import type { NetBoxReader } from './NetBoxReader.js';
 
 const toNbVm = (r: SimulatedNetboxVm): NbVm => ({
   id: r.id,
@@ -37,7 +38,7 @@ function translate(err: unknown): never {
   throw err;
 }
 
-export class SimulatedNetBoxGateway implements NetBoxGateway {
+export class SimulatedNetBoxGateway implements NetBoxGateway, NetBoxReader {
   readonly target = 'SIMULATION' as const;
   readonly unsupportedFields = ['comments'] as const;
 
@@ -45,6 +46,10 @@ export class SimulatedNetBoxGateway implements NetBoxGateway {
 
   async prepare(_clusters: ClusterSpec[]): Promise<void> {
     // Clusters, cluster types and tags are plain strings in the simulation – nothing to create.
+  }
+
+  async listVms(): Promise<NbVm[]> {
+    return (await this.prisma.simulatedNetboxVm.findMany({ orderBy: { id: 'asc' } })).map(toNbVm);
   }
 
   async getVm(id: number): Promise<NbVm | null> {

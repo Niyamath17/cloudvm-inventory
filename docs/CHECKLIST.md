@@ -1,6 +1,6 @@
 # CloudVM – Running Checklist
 
-_Last updated: 31 Oct 2026 (M4 implemented) · Deadline: 31 Oct 2026, 16:00 IST_
+_Last updated: 31 Oct 2026 (M5 implemented) · Deadline: 31 Oct 2026, 16:00 IST_
 
 Legend: ✅ done & verified · 🟡 done, verification pending · ⏳ pending · ⛔ blocked
 
@@ -74,20 +74,28 @@ Source: `bash scripts/verify-m3.sh` → `m3-verification.log` – **10/10 steps 
 - ✅ New tests: reconciliation 10, accounts 5, query 6 (unit); collection 25 (incl. 12 account-level regression), API 12 (DB)
 - ✅ Mac: idempotency OK (58 unchanged), locking OK (one 202, one 409), live API demo PASS, dev DB schema unchanged
 
-## M4 – NetBox synchronization (SIMULATION) — 🟡 IMPLEMENTED, awaiting Mac verification
+## M4 – NetBox synchronization (SIMULATION) — ✅ COMPLETE (verified on Mac, 31 Oct 2026: 257/257 tests, live collection + SIMULATION sync demo; committed and tagged by Mahesh)
 - ✅ `NetBoxGateway` interface; `SimulatedNetBoxGateway` (simulated_netbox_vms, NetBox rules); `HttpNetBoxGateway` (real REST client, Token/Bearer, retries) – **contract-tested against a local fake server only, not run against real NetBox, live mode not enabled**
 - ✅ Mapping (built-in fields only: serial, cluster, vcpus, memory MiB, disk MB, status, tags, comments) + changed-field diff
 - ✅ `SyncService`: skip-unchanged with zero gateway calls, match (stored id → serial → name w/o serial), CREATE / UPDATE / DECOMMISSION / DUPLICATE, name disambiguation, auth abort, per-VM failure, lock
 - ✅ API: `POST /sync`, `GET /sync/runs`, `GET /sync/runs/:id`, `GET /netbox/status`, `GET /netbox/simulated-vms`; dashboard `lastSync` (flagged `simulated`)
 - ✂️ Cut for the deadline (approved): dry run, circuit breaker
 - ✅ No DB schema change · Claude's workspace: typecheck clean, 183 tests pass (33 new sync unit/contract tests), 74 DB tests skipped (19 new)
-- 🟡 Run `bash scripts/verify-m4.sh` on the Mac (expected **257** tests)
+
+## M5 – Drift detection & reporting (SIMULATION) — 🟡 IMPLEMENTED, awaiting Mac verification
+- ✅ Pure drift engine: MISSING_IN_NETBOX, ORPHAN_IN_NETBOX (managed WARNING / unmanaged INFO), DUPLICATE (CRITICAL), POWER_STATE_MISMATCH (WARNING / CRITICAL on lifecycle disagreement), RESOURCE_MISMATCH (vcpus/memory/disk WARNING, name/cluster INFO)
+- ✅ Not compared (no false drift): UNKNOWN power, null local resources, disambiguated names, never-synced decommissioned VMs
+- ✅ Reports + items persisted in the M1 `drift_reports` / `drift_items` tables – **no schema change**
+- ✅ Remediation: `POST /drift/reports/:id/remediate` resets sync state for MISSING/RESOURCE/POWER drift → next `POST /sync` corrects it; orphans/duplicates are never deleted automatically
+- ✅ API: `POST/GET /drift/reports`, `GET /drift/reports/latest`, `GET /drift/reports/:id?type=&severity=`, `POST /drift/reports/:id/remediate` – every response labelled SIMULATION
+- ✅ Read-only `NetBoxReader.listVms()` on both gateways (M4 `NetBoxGateway` interface unchanged)
+- ✅ Claude's workspace: typecheck clean · 197 tests pass (14 new unit) · 86 DB tests skipped (12 new)
+- 🟡 Run `bash scripts/verify-m5.sh` on the Mac (expected **283** tests; demo: 0 → 5 findings → 0)
 
 ## Environment notes
 - Claude's cloud workspace cannot reach `binaries.prisma.sh` / Docker Hub, and Claude's Mac shell is unavailable (low disk space) → all DB/Prisma verification runs on the Mac via `scripts/verify-m0.sh`.
 
 ## Pending milestones
-- ⏳ M5 Drift engine + reports
 - ⏳ M6 Scheduler
 - ⏳ M7 Frontend shell + Dashboard
 - ⏳ M8 Inventory UI

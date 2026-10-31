@@ -28,6 +28,7 @@ import {
   type NbVmWrite,
   type NetBoxGateway,
 } from './NetBoxGateway.js';
+import type { NetBoxReader } from './NetBoxReader.js';
 import { RetryAfterError, withRetry, type RetryOptions } from './retry.js';
 
 export interface HttpGatewayOptions {
@@ -64,7 +65,7 @@ const TAGS = [
 
 const slugify = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
 
-export class HttpNetBoxGateway implements NetBoxGateway {
+export class HttpNetBoxGateway implements NetBoxGateway, NetBoxReader {
   readonly target = 'NETBOX' as const;
   readonly unsupportedFields = [] as const;
   private readonly baseUrl: string;
@@ -176,6 +177,17 @@ export class HttpNetBoxGateway implements NetBoxGateway {
       const existing = await this.get<Page<{ id: number }>>(`/api/virtualization/clusters/?name=${encodeURIComponent(c.name)}`);
       const id = existing.results[0]?.id ?? (await this.request<{ id: number }>('POST', '/api/virtualization/clusters/', { name: c.name, type: typeId })).id;
       this.clusterIds.set(c.name, id);
+    }
+  }
+
+  /** All VMs, paginated with limit/offset (NetBox's standard pagination). */
+  async listVms(): Promise<NbVm[]> {
+    const all: NbVm[] = [];
+    const limit = 500;
+    for (let offset = 0; ; offset += limit) {
+      const page = await this.get<Page<ApiVm>>(`/api/virtualization/virtual-machines/?limit=${limit}&offset=${offset}`);
+      all.push(...page.results.map((v) => this.toNbVm(v)));
+      if (page.results.length < limit || all.length >= page.count) return all;
     }
   }
 

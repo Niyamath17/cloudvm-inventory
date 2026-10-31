@@ -4,7 +4,28 @@ A running log of what was built, why, and how to run it. Newest milestone at the
 
 ---
 
-## M4 – NetBox synchronization, SIMULATION mode (31 Oct 2026) – implemented
+## M5 – Drift detection & reporting, SIMULATION mode (31 Oct 2026) – implemented
+
+Compares the CloudVM inventory with the SIMULATED NetBox records (matching key: `serial`).
+Every report is stored with target `SIMULATION`; no real NetBox is contacted or claimed.
+
+| File | Purpose |
+|---|---|
+| `src/modules/drift/drift.engine.ts` | Pure detection rules + summary |
+| `src/modules/drift/drift.service.ts` | Generate (persist report + items), remediate (reset sync state) |
+| `src/modules/drift/drift.routes.ts` | Drift API |
+| `src/modules/netbox/NetBoxReader.ts` | `listVms()` – implemented by both gateways |
+| `tests/unit/drift/*.test.ts` | 14 tests (engine rules, HTTP pagination with stubbed fetch) |
+| `tests/integration/drift*.test.ts` | 12 DB/API tests |
+| `scripts/verify-m5.sh` | Demo: 0 findings → 5 deliberate differences → remediate + sync + manual cleanup → 0 |
+
+Design choices: drift never changes NetBox itself; correction goes through the verified M4 sync
+(by resetting `VmSyncState` to PENDING), and orphan/duplicate records require an operator decision.
+Severity rules are documented at the top of `drift.engine.ts`.
+
+---
+
+## M4 – NetBox synchronization, SIMULATION mode (31 Oct 2026) – ✅ verified (257/257)
 
 Design: `docs/SYNC_DESIGN.md`. Every run/state is recorded with target `SIMULATION`; nothing contacts a real NetBox.
 

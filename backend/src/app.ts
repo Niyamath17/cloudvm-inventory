@@ -22,6 +22,8 @@ import type { RegisteredProvider } from './modules/providers/registry.js';
 import type { NetBoxGateway } from './modules/netbox/NetBoxGateway.js';
 import { createNetBoxRouter, createSyncRouter } from './modules/sync/sync.routes.js';
 import type { SyncService } from './modules/sync/sync.service.js';
+import { createDriftRouter } from './modules/drift/drift.routes.js';
+import type { DriftService } from './modules/drift/drift.service.js';
 
 export interface AppDeps {
   logger: Logger;
@@ -35,6 +37,8 @@ export interface AppDeps {
     /** NetBox sync (M4). Optional so M3 tests can build the app without it. */
     sync?: SyncService;
     netbox?: NetBoxGateway;
+    /** Drift reporting (M5). Optional so M3/M4 tests can build the app without it. */
+    drift?: DriftService;
   };
 }
 
@@ -60,8 +64,8 @@ export function createApp(deps: AppDeps): Express {
       api.use('/sync', createSyncRouter(prisma, deps.modules.sync));
       api.use('/netbox', createNetBoxRouter(prisma, deps.modules.netbox));
     }
+    if (deps.modules.drift) api.use('/drift', createDriftRouter(prisma, deps.modules.drift));
   }
-  // M5+: api.use('/drift', ...)
   app.use('/api/v1', api);
 
   // --- Fallbacks (must be last) ---------------------------------------------

@@ -19,6 +19,8 @@ import { HttpNetBoxGateway } from './modules/netbox/http.gateway.js';
 import type { NetBoxGateway } from './modules/netbox/NetBoxGateway.js';
 import { SimulatedNetBoxGateway } from './modules/netbox/simulated.gateway.js';
 import { SyncService } from './modules/sync/sync.service.js';
+import { DriftService } from './modules/drift/drift.service.js';
+import type { NetBoxReader } from './modules/netbox/NetBoxReader.js';
 
 const require = createRequire(import.meta.url);
 const { version } = require('../package.json') as { version: string };
@@ -34,6 +36,7 @@ export interface Container {
   /** SIMULATION (default) or LIVE NetBox, chosen by NETBOX_MODE. */
   netbox: NetBoxGateway;
   sync: SyncService;
+  drift: DriftService;
   version: string;
   startedAt: Date;
 }
@@ -43,7 +46,7 @@ export function buildContainer(): Container {
   const logger = createLogger(env);
   const prisma = createPrismaClient(env.DATABASE_URL);
   const providers = createMockProviders();
-  const netbox: NetBoxGateway =
+  const netbox: NetBoxGateway & NetBoxReader =
     env.NETBOX_MODE === 'live' && env.NETBOX_URL && env.NETBOX_TOKEN
       ? new HttpNetBoxGateway({ baseUrl: env.NETBOX_URL, token: env.NETBOX_TOKEN, authScheme: env.NETBOX_AUTH_SCHEME })
       : new SimulatedNetBoxGateway(prisma);
@@ -57,6 +60,7 @@ export function buildContainer(): Container {
     collections: new CollectionService(prisma, providers, logger),
     netbox,
     sync: new SyncService(prisma, netbox, logger),
+    drift: new DriftService(prisma, netbox, logger),
     version,
     startedAt: new Date(),
   };
