@@ -4,7 +4,71 @@ A running log of what was built, why, and how to run it. Newest milestone at the
 
 ---
 
-## M2 – Provider adapters & normalization engine (30 Oct 2026) – implemented
+## M4 – NetBox synchronization, SIMULATION mode (31 Oct 2026) – implemented
+
+Design: `docs/SYNC_DESIGN.md`. Every run/state is recorded with target `SIMULATION`; nothing contacts a real NetBox.
+
+| File | Purpose |
+|---|---|
+| `src/modules/netbox/NetBoxGateway.ts` | Interface + shared error classes (validation, name conflict, auth, transient) |
+| `src/modules/netbox/simulated.gateway.ts` | SIMULATION gateway on `simulated_netbox_vms` (P2002 → name conflict) |
+| `src/modules/netbox/http.gateway.ts`, `retry.ts` | Real NetBox REST client (not enabled; contract-tested against a fake server) |
+| `src/modules/netbox/mapping.ts` | VM → NetBox payload, diff |
+| `src/modules/sync/{plan,sync.service,sync.routes}.ts` | Decisions, engine, API |
+| `tests/unit/sync/*.test.ts` | 33 tests (mapping, plan, retry, HTTP contract) |
+| `tests/integration/{sync,sync-api}.test.ts` | 19 DB tests (simulation) |
+| `scripts/verify-m4.sh` | Verification + live demo (collect → sync → sync = 58 skipped) |
+
+Cut for the deadline (approved order): dry run, circuit breaker.
+Known limits: IP/interface objects not synced; the simulation table has no `comments` column, so comments are not diffed there.
+
+---
+
+## M3 – Persistence, reconciliation & inventory API (30–31 Oct 2026) – ✅ verified
+
+Mac 31 Oct 08:03 IST: `verify-m3.sh` 10/10 PASS, 205/205 tests (21 files), reconciliation regression 40/40, idempotency (58 unchanged) and locking (202 + 409) confirmed.
+
+### What & why
+Stores the normalized MOCK inventory, keeps collection history, safely decommissions VMs that
+disappear, and serves the inventory over REST.
+
+### Rules (and where they live)
+| Rule | Implementation |
+|---|---|
+| Failed provider never decommissions | provider exception → ProviderRunResult FAILED, nothing written (`collection.service.ts`) |
+| Reconcile only queried, complete accounts | `planReconciliation` – accounts the adapter reports as queried (incl. zero-VM accounts), minus FAILED accounts and accounts tainted by invalid records |
+| Idempotent re-run | fingerprint equal → row not rewritten; only `lastDiscoveredAt` advanced in ONE raw `UPDATE` that does not touch `updatedAt` |
+| Reactivation | a DECOMMISSIONED VM that reappears → fingerprint differs → UPDATE to ACTIVE, `decommissionedAt`/reason cleared |
+| Original decommission time kept | `decommissionedAt` preserved on repeated terminated/missing observations |
+| Atomic per provider | `prisma.$transaction` per provider batch |
+| One collection at a time | in-process lock (sync claim) + RUNNING-row DB guard; stale RUNNING (>15 min) closed as FAILED |
+
+### Files
+`src/modules/collection/{collection.service,reconciliation,collection.routes}.ts`,
+`src/modules/inventory/{inventory.writer,inventory.query,inventory.routes}.ts`,
+`src/modules/providers/providers.routes.ts`, `src/modules/dashboard/dashboard.routes.ts`,
+wiring in `container.ts` / `app.ts` / `index.ts` (modules optional in `createApp`, so M0 health tests are unchanged),
+`tests/helpers/test-db.ts`, `tests/integration/{collection,inventory-api}.test.ts`,
+`tests/unit/{reconciliation,inventory-query}.test.ts`, `scripts/verify-m3.sh`.
+Small compatible change: `fingerprint()` accepts any object with the hashed fields (so a DB row can be re-fingerprinted).
+
+### Known limitations (documented)
+- Lock is per process + DB guard; a multi-instance deployment should use a PostgreSQL advisory lock.
+- ~~An account whose LAST VM disappears is not reconciled.~~ **Fixed (M3 review):** adapters now
+  report every account they queried (`CollectionBatch.accounts`: COMPLETE / FAILED), and
+  `planReconciliation` is driven by that list – a COMPLETE account with zero VMs is reconciled,
+  a FAILED account never is, an account with invalid records is not. MOCK files declare their
+  queried accounts in a top-level `accounts` array (Proxmox: one cluster block per account;
+  VMware: the vCenter); `"error"` simulates a failed query.
+
+### Run on the Mac
+```bash
+cd ~/Desktop/CloudVM && bash scripts/verify-m3.sh
+```
+
+---
+
+## M2 – Provider adapters & normalization engine (30 Oct 2026) – ✅ verified (commit 33b975f)
 
 ### What & why
 Turns five provider-shaped MOCK files into one validated, fingerprinted `NormalizedVm` list –
@@ -36,6 +100,12 @@ the input M3 will persist. No database access. Design and per-provider mapping t
 - A hand-written expectation in `all-providers.test.ts` (power-state counts) was wrong at first
   (37 RUNNING / 6 UNKNOWN); an independent count of the preview output gave 39 / 13 / 2 / 4, and the
   test was corrected to the verified values.
+
+### Verification results (Mac, 30 Oct 2026 19:29 IST)
+`verify-m2.sh` 11/11 PASS: migrate status up to date (schema unchanged); no Prisma imports in
+`src/domain`, `src/modules/providers`, `src/modules/normalization`; typecheck + build PASS;
+normalization tests 116/116; preview `TOTAL vms=58 skipped=2 invalid=0`; full suite **146/146**
+(16 files); `/health` HTTP 200.
 
 ### Run on the Mac
 ```bash

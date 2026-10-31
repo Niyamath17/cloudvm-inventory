@@ -30,14 +30,22 @@ export class VmwareMockAdapter implements ProviderAdapter<VmwareRawVm> {
     // The whole file comes from one vCenter: without its name no VM has an identity.
     if (!vcenter) throw new SampleFileError(`${VMWARE_SAMPLE_FILE} has no "vcenter" host`);
 
+    const account = vcenter.toLowerCase(); // same form as the VM identity
+    const sourceLabel = `MOCK sample file ${VMWARE_SAMPLE_FILE} (vCenter ${vcenter})`;
+    const error = typeof file.error === 'string' ? file.error : null; // simulated failed vCenter query
+    if (error) {
+      return { provider: 'VMWARE', dataSource: 'MOCK', sourceLabel, collectedAt: new Date(), records: [], rejected: [], accounts: [{ account, status: 'FAILED', error }] };
+    }
+
     const { valid, rejected } = validateEach(asArray(file.vms), vmwareVmSchema, (v) => readString(v, 'summary', 'name'));
     return {
       provider: 'VMWARE',
       dataSource: 'MOCK',
-      sourceLabel: `MOCK sample file ${VMWARE_SAMPLE_FILE} (vCenter ${vcenter})`,
+      sourceLabel,
       collectedAt: new Date(),
-      rejected,
+      rejected: rejected.map((r) => ({ ...r, account })),
       records: valid.map((vm) => ({ vcenter, vm })),
+      accounts: [{ account, status: 'COMPLETE' }],
     };
   }
 }

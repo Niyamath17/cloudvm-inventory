@@ -9,7 +9,10 @@
 import type { z } from 'zod';
 import { gcpInstanceSchema, gcpMachineTypeSchema, type GcpInstance } from '../raw/gcp.raw.js';
 import type { CollectionBatch, ProviderAdapter } from '../ProviderAdapter.js';
-import { asArray, DEFAULT_SAMPLE_DIR, readMockSample, readString, validateEach } from './sample-file.js';
+import { asArray, DEFAULT_SAMPLE_DIR, failedSet, readMockSample, readString, resolveAccounts, validateEach } from './sample-file.js';
+
+/** Project ID from a GCP zone URL (".../projects/<p>/zones/<z>"). */
+export const projectOf = (zoneUrl: string | null): string | undefined => /\/projects\/([^/]+)\/zones\//.exec(zoneUrl ?? '')?.[1];
 
 export const GCP_SAMPLE_FILE = 'gcp.compute.instances-aggregated.json';
 
@@ -38,14 +41,22 @@ export class GcpMockAdapter implements ProviderAdapter<GcpRawVm> {
     const items = typeof file.items === 'object' && file.items !== null ? Object.values(file.items) : [];
     const instances = items.flatMap((group) => asArray((group as { instances?: unknown })?.instances));
     const { valid, rejected } = validateEach(instances, gcpInstanceSchema, (i) => readString(i, 'name'));
+    const accountOf = (i: unknown) => projectOf(readString(i, 'zone'));
+
+    const accounts = resolveAccounts(file.accounts, instances.flatMap((i) => accountOf(i) ?? []));
+    const failed = failedSet(accounts);
+    const ok = (account: string | undefined) => !account || !failed.has(account);
 
     return {
       provider: 'GCP',
       dataSource: 'MOCK',
       sourceLabel: `MOCK sample file ${GCP_SAMPLE_FILE}`,
       collectedAt: new Date(),
-      rejected,
-      records: valid.map((instance) => ({
+      accounts,
+      rejected: rejected
+        .map((r) => ({ ...r, account: accountOf(instances.find((i) => readString(i, 'name') === r.ref)) }))
+        .filter((r) => ok(r.account)),
+      records: valid.filter((i) => ok(projectOf(i.zone))).map((instance) => ({
         instance,
         machineType: typeByName.get(lastSegment(instance.machineType)) ?? null,
       })),

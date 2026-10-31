@@ -27,6 +27,7 @@ export const proxmoxAgentSchema = z.object({
 
 export const proxmoxClusterSchema = z.object({
   cluster: z.string(),
+  error: z.string().optional(), // MOCK simulation of a failed cluster query
   data: z.array(proxmoxResourceSchema),
   agent: z.record(z.string(), proxmoxAgentSchema).default({}), // keyed by vmid
 });

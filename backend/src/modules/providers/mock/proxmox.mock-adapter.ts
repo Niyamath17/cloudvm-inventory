@@ -13,7 +13,7 @@
 import type { z } from 'zod';
 import { proxmoxAgentSchema, proxmoxResourceSchema, type ProxmoxResource } from '../raw/proxmox.raw.js';
 import type { CollectionBatch, ProviderAdapter, RejectedRawRecord } from '../ProviderAdapter.js';
-import { asArray, DEFAULT_SAMPLE_DIR, readMockSample, readString, validateEach } from './sample-file.js';
+import { asArray, DEFAULT_SAMPLE_DIR, readMockSample, readString, resolveAccounts, validateEach } from './sample-file.js';
 
 export const PROXMOX_SAMPLE_FILE = 'proxmox.cluster-resources.json';
 
@@ -33,6 +33,8 @@ export class ProxmoxMockAdapter implements ProviderAdapter<ProxmoxRawVm> {
     const file = await readMockSample(this.sampleDir, PROXMOX_SAMPLE_FILE, 'PROXMOX');
     const records: ProxmoxRawVm[] = [];
     const rejected: RejectedRawRecord[] = [];
+    // Each cluster block is one queried account; "error" marks a failed query (MOCK simulation).
+    const declared: Array<{ id: string; error?: string }> = [];
 
     for (const clusterBlock of asArray(file.clusters)) {
       const cluster = readString(clusterBlock, 'cluster');
@@ -44,11 +46,15 @@ export class ProxmoxMockAdapter implements ProviderAdapter<ProxmoxRawVm> {
         rejected.push(...data.map((r) => ({ ref: ref(r), errors: ['cluster block has no "cluster" name'] })));
         continue;
       }
+      const error = readString(clusterBlock, 'error');
+      declared.push(error ? { id: cluster, error } : { id: cluster });
+      if (error) continue; // failed query: no data for this cluster
+
       const agentRaw = (clusterBlock as { agent?: unknown })?.agent;
       const agents = typeof agentRaw === 'object' && agentRaw !== null ? (agentRaw as Record<string, unknown>) : {};
 
       const { valid, rejected: bad } = validateEach(data, proxmoxResourceSchema, ref);
-      rejected.push(...bad);
+      rejected.push(...bad.map((b) => ({ ...b, account: cluster })));
       for (const resource of valid) {
         const agent = proxmoxAgentSchema.safeParse(agents[String(resource.vmid)]);
         records.push({ cluster, resource, agent: agent.success ? agent.data : null });
@@ -62,6 +68,7 @@ export class ProxmoxMockAdapter implements ProviderAdapter<ProxmoxRawVm> {
       collectedAt: new Date(),
       records,
       rejected,
+      accounts: resolveAccounts(declared, []),
     };
   }
 }

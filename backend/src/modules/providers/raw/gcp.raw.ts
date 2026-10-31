@@ -3,7 +3,7 @@
  * Note: GCP serialises int64 values (id, diskSizeGb) as strings.
  */
 import { z } from 'zod';
-import { mockMetaSchema } from './meta.js';
+import { mockMetaSchema, queriedAccountsSchema } from './meta.js';
 
 export const gcpInstanceSchema = z.looseObject({
   id: z.string().regex(/^\d+$/),
@@ -29,6 +29,7 @@ export const gcpMachineTypeSchema = z.object({
 
 export const gcpSampleSchema = z.object({
   _meta: mockMetaSchema.extend({ provider: z.literal('GCP') }),
+  accounts: queriedAccountsSchema,
   items: z.record(z.string(), z.object({ instances: z.array(gcpInstanceSchema).default([]) })),
   machineTypes: z.array(gcpMachineTypeSchema),
 });

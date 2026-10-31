@@ -3,7 +3,7 @@
  * with instanceView, VM sizes and network interfaces).
  */
 import { z } from 'zod';
-import { mockMetaSchema } from './meta.js';
+import { mockMetaSchema, queriedAccountsSchema } from './meta.js';
 
 export const azureVmSchema = z.looseObject({
   id: z.string().startsWith('/subscriptions/'),
@@ -39,6 +39,7 @@ export const azureNicSchema = z.looseObject({
 
 export const azureSampleSchema = z.object({
   _meta: mockMetaSchema.extend({ provider: z.literal('AZURE') }),
+  accounts: queriedAccountsSchema,
   value: z.array(azureVmSchema),
   vmSizes: z.array(azureVmSizeSchema),
   networkInterfaces: z.array(azureNicSchema),

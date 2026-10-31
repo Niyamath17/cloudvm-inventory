@@ -7,7 +7,7 @@
  * the rest for VirtualMachine.rawData.
  */
 import { z } from 'zod';
-import { mockMetaSchema } from './meta.js';
+import { mockMetaSchema, queriedAccountsSchema } from './meta.js';
 
 export const awsTagSchema = z.object({ Key: z.string(), Value: z.string() });
 
@@ -40,6 +40,7 @@ export const awsVolumeSchema = z.looseObject({
 
 export const awsSampleSchema = z.object({
   _meta: mockMetaSchema.extend({ provider: z.literal('AWS') }),
+  accounts: queriedAccountsSchema,
   Reservations: z.array(z.looseObject({ Instances: z.array(awsInstanceSchema) })),
   InstanceTypes: z.array(awsInstanceTypeSchema),
   Volumes: z.array(awsVolumeSchema),

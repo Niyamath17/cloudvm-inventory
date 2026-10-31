@@ -1,6 +1,6 @@
 # CloudVM – Running Checklist
 
-_Last updated: 30 Oct 2026 (M2 implemented) · Deadline: 31 Oct 2026, 16:00 IST_
+_Last updated: 31 Oct 2026 (M4 implemented) · Deadline: 31 Oct 2026, 16:00 IST_
 
 Legend: ✅ done & verified · 🟡 done, verification pending · ⏳ pending · ⛔ blocked
 
@@ -48,7 +48,8 @@ Source: `bash scripts/verify-m1.sh` → `m1-verification.log` – **13/13 steps 
 - ✅ `prisma migrate status`: up to date · `migrate diff` DB vs schema: **No difference detected**
 - ✅ Typecheck, build, `/health` regression (HTTP 200, DB up): PASS
 
-## M2 – Provider adapters & normalization — 🟡 IMPLEMENTED, awaiting Mac verification
+## M2 – Provider adapters & normalization — ✅ COMPLETE (verified on Mac, 30 Oct 2026 19:29 IST, commit 33b975f)
+Source: `bash scripts/verify-m2.sh` → `m2-verification.log` – **11/11 steps PASS**
 - ✅ `ProviderAdapter` interface, `NormalizedVm` schema, helpers, deterministic fingerprint, normalization engine, registry
 - ✅ 5 MOCK adapters + 5 pure mappers (AWS, Azure, GCP, Proxmox, VMware) – per-record raw validation with the M1 schemas
 - ✅ Scope decision: Proxmox templates and LXC containers are **skipped** (LXC = possible future enhancement)
@@ -57,14 +58,35 @@ Source: `bash scripts/verify-m1.sh` → `m1-verification.log` – **13/13 steps 
 - ✅ Unit tests in Claude's workspace: **122/122** (80 normalization tests across 9 files) · typecheck clean
 - ✅ No database access in `src/domain`, `src/modules/providers`, `src/modules/normalization` (M1 schema unchanged)
 - ✅ `scripts/verify-m2.sh`, `backend/scripts/normalize-preview.ts`, `docs/NORMALIZATION.md`
-- 🟡 Run `bash scripts/verify-m2.sh` on the Mac
+- ✅ Mac: normalization tests 116/116 · full backend suite **146/146** (16 files, incl. 24 DB tests) · preview `TOTAL vms=58 skipped=2 invalid=0`
+- ✅ Mac: `prisma migrate status` up to date (M1 schema unchanged) · no Prisma imports in M2 modules · typecheck/build PASS · `/health` 200
+
+## M3 – Persistence, reconciliation & inventory API — ✅ COMPLETE (verified on Mac, 31 Oct 2026 08:03 IST)
+Source: `bash scripts/verify-m3.sh` → `m3-verification.log` – **10/10 steps PASS**, **205/205 tests** (21 files), reconciliation regression 40/40
+- ✅ `CollectionService`: in-process lock + DB guard (RUNNING run blocks; stale >15 min closed as FAILED); background run with 202
+- ✅ `planReconciliation`: driven by the accounts each adapter reports it QUERIED – COMPLETE accounts (incl. zero-VM) reconciled; FAILED accounts and accounts with invalid records never; FAILED provider never
+- ✅ Review fix: zero-VM account reconciliation (adapters report `accounts` with COMPLETE/FAILED; MOCK `accounts` array / Proxmox cluster `error` / VMware `error`)
+- ✅ `writeProviderBatch`: one transaction per provider – create / update (incl. reactivation) / unchanged (heartbeat only, one SQL statement, `updatedAt` untouched) / account-scoped decommission (`MISSING_FROM_PROVIDER`, power UNKNOWN, fingerprint recomputed)
+- ✅ API: `POST/GET /collections`, `GET /collections/:id`, `GET /vms` (search, filters, sort, pagination), `GET /vms/facets`, `GET /vms/:id`, `GET /providers`, `GET /dashboard/summary`
+- ✅ Separate test database `cloudvm_test` (integration tests truncate it; dev DB never truncated); `fileParallelism: false`
+- ✅ Mac run before the fix: 9/9 PASS, 183/183 tests, idempotency + locking OK
+- ✅ Claude's workspace after the fix (no DB): typecheck clean · 150 tests pass, 55 DB tests skipped
+- ✅ New tests: reconciliation 10, accounts 5, query 6 (unit); collection 25 (incl. 12 account-level regression), API 12 (DB)
+- ✅ Mac: idempotency OK (58 unchanged), locking OK (one 202, one 409), live API demo PASS, dev DB schema unchanged
+
+## M4 – NetBox synchronization (SIMULATION) — 🟡 IMPLEMENTED, awaiting Mac verification
+- ✅ `NetBoxGateway` interface; `SimulatedNetBoxGateway` (simulated_netbox_vms, NetBox rules); `HttpNetBoxGateway` (real REST client, Token/Bearer, retries) – **contract-tested against a local fake server only, not run against real NetBox, live mode not enabled**
+- ✅ Mapping (built-in fields only: serial, cluster, vcpus, memory MiB, disk MB, status, tags, comments) + changed-field diff
+- ✅ `SyncService`: skip-unchanged with zero gateway calls, match (stored id → serial → name w/o serial), CREATE / UPDATE / DECOMMISSION / DUPLICATE, name disambiguation, auth abort, per-VM failure, lock
+- ✅ API: `POST /sync`, `GET /sync/runs`, `GET /sync/runs/:id`, `GET /netbox/status`, `GET /netbox/simulated-vms`; dashboard `lastSync` (flagged `simulated`)
+- ✂️ Cut for the deadline (approved): dry run, circuit breaker
+- ✅ No DB schema change · Claude's workspace: typecheck clean, 183 tests pass (33 new sync unit/contract tests), 74 DB tests skipped (19 new)
+- 🟡 Run `bash scripts/verify-m4.sh` on the Mac (expected **257** tests)
 
 ## Environment notes
 - Claude's cloud workspace cannot reach `binaries.prisma.sh` / Docker Hub, and Claude's Mac shell is unavailable (low disk space) → all DB/Prisma verification runs on the Mac via `scripts/verify-m0.sh`.
 
 ## Pending milestones
-- ⏳ M3 Inventory service + collection orchestrator + inventory APIs
-- ⏳ M4 NetBox gateway (live + SIMULATION) + sync engine
 - ⏳ M5 Drift engine + reports
 - ⏳ M6 Scheduler
 - ⏳ M7 Frontend shell + Dashboard

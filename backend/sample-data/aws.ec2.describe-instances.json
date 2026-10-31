@@ -22,6 +22,11 @@
       "Name 'web-01' also exists in the VMware sample (cross-provider duplicate name)"
     ]
   },
+  "accounts": [
+    {
+      "id": "123456789012"
+    }
+  ],
   "Reservations": [
     {
       "ReservationId": "r-0e5f60001",

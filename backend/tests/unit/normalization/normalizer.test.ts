@@ -38,6 +38,7 @@ const batch = (records: MapOutcome[]): CollectionBatch<MapOutcome> => ({
   collectedAt: new Date('2026-10-30T10:00:00Z'),
   records,
   rejected: [{ ref: 'bad-raw', errors: ['raw shape invalid'] }],
+  accounts: [{ account: 'proj', status: 'COMPLETE' }],
 });
 const passThrough = (o: MapOutcome) => o;
 
@@ -48,6 +49,10 @@ describe('normalizeBatch', () => {
     expect(r.vms[0]?.vm.dataSource).toBe('MOCK');
     expect(r.vms[0]?.vm.discoveredAt.toISOString()).toBe('2026-10-30T10:00:00.000Z');
     expect(r.vms[0]?.fingerprint).toMatch(/^[0-9a-f]{64}$/);
+  });
+
+  it('passes the queried-account outcomes through unchanged', () => {
+    expect(normalizeBatch(batch([]), passThrough).accounts).toEqual([{ account: 'proj', status: 'COMPLETE' }]);
   });
 
   it('carries adapter-rejected raw records through as invalid[stage=raw]', () => {

@@ -18,3 +18,9 @@ export const mockMetaSchema = z.object({
 });
 
 export type MockMeta = z.infer<typeof mockMetaSchema>;
+
+/**
+ * MOCK stand-in for an adapter's configured account list (see mock/sample-file.ts).
+ * "error" simulates a failed query of that account.
+ */
+export const queriedAccountsSchema = z.array(z.object({ id: z.string().min(1), error: z.string().optional() })).optional();

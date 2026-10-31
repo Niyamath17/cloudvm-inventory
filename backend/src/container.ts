@@ -13,6 +13,12 @@ import { getEnv, type Env } from './config/env.js';
 import { createDatabaseChecker, type DatabaseChecker } from './lib/database.js';
 import { createLogger, type Logger } from './lib/logger.js';
 import { createPrismaClient, type PrismaClient } from './lib/prisma.js';
+import { CollectionService } from './modules/collection/collection.service.js';
+import { createMockProviders, type RegisteredProvider } from './modules/providers/registry.js';
+import { HttpNetBoxGateway } from './modules/netbox/http.gateway.js';
+import type { NetBoxGateway } from './modules/netbox/NetBoxGateway.js';
+import { SimulatedNetBoxGateway } from './modules/netbox/simulated.gateway.js';
+import { SyncService } from './modules/sync/sync.service.js';
 
 const require = createRequire(import.meta.url);
 const { version } = require('../package.json') as { version: string };
@@ -22,6 +28,12 @@ export interface Container {
   logger: Logger;
   prisma: PrismaClient;
   checkDatabase: DatabaseChecker;
+  /** All five providers – MOCK adapters only in this prototype. */
+  providers: RegisteredProvider[];
+  collections: CollectionService;
+  /** SIMULATION (default) or LIVE NetBox, chosen by NETBOX_MODE. */
+  netbox: NetBoxGateway;
+  sync: SyncService;
   version: string;
   startedAt: Date;
 }
@@ -30,12 +42,21 @@ export function buildContainer(): Container {
   const env = getEnv();
   const logger = createLogger(env);
   const prisma = createPrismaClient(env.DATABASE_URL);
+  const providers = createMockProviders();
+  const netbox: NetBoxGateway =
+    env.NETBOX_MODE === 'live' && env.NETBOX_URL && env.NETBOX_TOKEN
+      ? new HttpNetBoxGateway({ baseUrl: env.NETBOX_URL, token: env.NETBOX_TOKEN, authScheme: env.NETBOX_AUTH_SCHEME })
+      : new SimulatedNetBoxGateway(prisma);
 
   return {
     env,
     logger,
     prisma,
     checkDatabase: createDatabaseChecker(prisma),
+    providers,
+    collections: new CollectionService(prisma, providers, logger),
+    netbox,
+    sync: new SyncService(prisma, netbox, logger),
     version,
     startedAt: new Date(),
   };

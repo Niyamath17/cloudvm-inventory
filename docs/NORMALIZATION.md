@@ -33,6 +33,13 @@ so the mapper, engine and everything downstream stay unchanged.
 **Why adapter and mapper are separate:** adapters do I/O; mappers are pure functions, so every
 rule is tested with plain objects and no network or files.
 
+## Queried accounts
+Every adapter reports the accounts it queried (`CollectionBatch.accounts`): `COMPLETE` or `FAILED`
+(with the error). Records of a FAILED account are never returned. A COMPLETE account with zero VMs is
+still reported, which lets M3 decommission its previously discovered VMs. MOCK files declare this list
+(`accounts: [{ id, error? }]` for AWS/Azure/GCP; one cluster block per Proxmox account; the VMware
+file's `vcenter`); `error` simulates a failed query.
+
 ## Record outcomes
 
 | Outcome | When | Example |

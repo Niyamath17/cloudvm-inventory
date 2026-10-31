@@ -30,6 +30,7 @@ async function main(): Promise<void> {
     logger,
     corsOrigin: env.CORS_ORIGIN,
     health: { checkDatabase: c.checkDatabase, env, version: c.version, startedAt: c.startedAt },
+    modules: { prisma: c.prisma, providers: c.providers, collections: c.collections, sync: c.sync, netbox: c.netbox },
   });
 
   const server = app.listen(env.PORT, () => {

@@ -20,6 +20,11 @@ the M2 MOCK adapters exercise the same normalization code a future LIVE adapter 
 - **58** normalized VMs, **2** skipped (Proxmox template `ubuntu-2204-template`, Proxmox LXC container `nginx-lxc-01`), **0** invalid.
 - LXC containers are out of scope for this prototype (they are not virtual machines); supporting them is a possible future enhancement.
 
+## Queried accounts (MOCK stand-in for adapter configuration)
+AWS, Azure and GCP files declare the accounts the adapter "queried" in a top-level `accounts` array;
+Proxmox has one cluster block per account; VMware has one `vcenter`. An `error` field on an account
+(or on a Proxmox cluster block / the VMware file) simulates a failed query in tests.
+
 ## Rules
 - Every file has a `_meta` block with `"mock": true` and a label starting with `MOCK DATA`.
   Validation (`src/modules/providers/raw/*`) **rejects** a file without it.

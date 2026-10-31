@@ -12,11 +12,30 @@ import type { Logger } from './lib/logger.js';
 import { createRequestLogger } from './middleware/requestLogger.js';
 import { errorHandler, notFoundHandler } from './middleware/errorHandler.js';
 import { createHealthRouter, type HealthDeps } from './modules/health/health.routes.js';
+import type { PrismaClient } from '@prisma/client';
+import { createCollectionRouter } from './modules/collection/collection.routes.js';
+import type { CollectionService } from './modules/collection/collection.service.js';
+import { createDashboardRouter } from './modules/dashboard/dashboard.routes.js';
+import { createInventoryRouter } from './modules/inventory/inventory.routes.js';
+import { createProvidersRouter } from './modules/providers/providers.routes.js';
+import type { RegisteredProvider } from './modules/providers/registry.js';
+import type { NetBoxGateway } from './modules/netbox/NetBoxGateway.js';
+import { createNetBoxRouter, createSyncRouter } from './modules/sync/sync.routes.js';
+import type { SyncService } from './modules/sync/sync.service.js';
 
 export interface AppDeps {
   logger: Logger;
   corsOrigin: string;
   health: HealthDeps;
+  /** Inventory/collection modules (M3). Optional so the health-only tests can build a minimal app. */
+  modules?: {
+    prisma: PrismaClient;
+    providers: RegisteredProvider[];
+    collections: CollectionService;
+    /** NetBox sync (M4). Optional so M3 tests can build the app without it. */
+    sync?: SyncService;
+    netbox?: NetBoxGateway;
+  };
 }
 
 export function createApp(deps: AppDeps): Express {
@@ -31,7 +50,18 @@ export function createApp(deps: AppDeps): Express {
   // --- API v1 routes -------------------------------------------------------
   const api = express.Router();
   api.use('/health', createHealthRouter(deps.health));
-  // M2+: api.use('/vms', ...), api.use('/collections', ...), api.use('/sync', ...), ...
+  if (deps.modules) {
+    const { prisma, providers, collections } = deps.modules;
+    api.use('/vms', createInventoryRouter(prisma));
+    api.use('/collections', createCollectionRouter(prisma, collections));
+    api.use('/providers', createProvidersRouter(prisma, providers));
+    api.use('/dashboard', createDashboardRouter(prisma));
+    if (deps.modules.sync && deps.modules.netbox) {
+      api.use('/sync', createSyncRouter(prisma, deps.modules.sync));
+      api.use('/netbox', createNetBoxRouter(prisma, deps.modules.netbox));
+    }
+  }
+  // M5+: api.use('/drift', ...)
   app.use('/api/v1', api);
 
   // --- Fallbacks (must be last) ---------------------------------------------

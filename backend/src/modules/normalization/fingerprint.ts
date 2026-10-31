@@ -17,7 +17,14 @@ import type { NormalizedVm } from '../../domain/normalized-vm.js';
 
 export const FINGERPRINT_VERSION = 1;
 
-export function fingerprintFields(vm: NormalizedVm) {
+/** Exactly the fields that go into the hash – also satisfied by a VirtualMachine DB row (M3). */
+export type FingerprintInput = Pick<
+  NormalizedVm,
+  | 'provider' | 'externalId' | 'name' | 'hostname' | 'ipAddresses' | 'osName' | 'cpuCores' | 'memoryMb'
+  | 'diskGb' | 'region' | 'cluster' | 'owner' | 'powerState' | 'lifecycle'
+> & { tags: Record<string, string> };
+
+export function fingerprintFields(vm: FingerprintInput) {
   return {
     v: FINGERPRINT_VERSION,
     provider: vm.provider,
@@ -38,6 +45,6 @@ export function fingerprintFields(vm: NormalizedVm) {
   };
 }
 
-export function fingerprint(vm: NormalizedVm): string {
+export function fingerprint(vm: FingerprintInput): string {
   return createHash('sha256').update(JSON.stringify(fingerprintFields(vm))).digest('hex');
 }

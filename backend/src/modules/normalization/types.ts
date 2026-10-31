@@ -6,6 +6,7 @@
  *   invalid  – cannot produce a trustworthy VM (no stable identity, failed validation)
  */
 import type { NormalizedVm, ProviderName } from '../../domain/normalized-vm.js';
+import type { AccountOutcome } from '../providers/ProviderAdapter.js';
 
 /** Mapper output before the final schema check and fingerprinting. */
 export type DraftVm = Omit<NormalizedVm, 'discoveredAt' | 'dataSource'>;
@@ -31,5 +32,8 @@ export interface NormalizationResult {
   collectedAt: Date;
   vms: NormalizedRecord[];
   skipped: Array<{ ref: string; reason: string }>;
-  invalid: Array<{ ref: string | null; stage: 'raw' | 'mapping' | 'validation' | 'duplicate'; errors: string[] }>;
+  /** `account` is set when the invalid record could be attributed to an account. */
+  invalid: Array<{ ref: string | null; account?: string; stage: 'raw' | 'mapping' | 'validation' | 'duplicate'; errors: string[] }>;
+  /** Every account the adapter queried, with its outcome (passed through from the batch). */
+  accounts: AccountOutcome[];
 }

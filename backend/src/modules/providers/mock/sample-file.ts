@@ -6,7 +6,7 @@ import { readFile } from 'node:fs/promises';
 import { join, resolve } from 'node:path';
 import type { z } from 'zod';
 import { mockMetaSchema } from '../raw/meta.js';
-import type { RejectedRawRecord } from '../ProviderAdapter.js';
+import type { AccountOutcome, RejectedRawRecord } from '../ProviderAdapter.js';
 import type { ProviderName } from '../../../domain/normalized-vm.js';
 
 /** backend/sample-data, resolved from this file's location (works from src/ and dist/). */
@@ -62,3 +62,26 @@ export function readString(obj: unknown, ...path: string[]): string | null {
 }
 
 export const asArray = (v: unknown): unknown[] => (Array.isArray(v) ? v : []);
+
+/**
+ * MOCK stand-in for an adapter's configured account list.
+ *
+ * A LIVE adapter knows up front which accounts it is configured to query and whether
+ * each query succeeded. MOCK files declare that list in a top-level "accounts" array:
+ *   [{ "id": "123456789012" }, { "id": "999999999999", "error": "AccessDenied (simulated)" }]
+ * Accounts that appear in the data but are not declared are added as COMPLETE.
+ */
+export function resolveAccounts(declared: unknown, seenInData: Iterable<string>): AccountOutcome[] {
+  const outcomes = new Map<string, AccountOutcome>();
+  for (const entry of asArray(declared)) {
+    const id = readString(entry, 'id')?.trim();
+    if (!id) continue;
+    const error = readString(entry, 'error');
+    outcomes.set(id, error ? { account: id, status: 'FAILED', error } : { account: id, status: 'COMPLETE' });
+  }
+  for (const id of seenInData) if (!outcomes.has(id)) outcomes.set(id, { account: id, status: 'COMPLETE' });
+  return [...outcomes.values()].sort((a, b) => a.account.localeCompare(b.account));
+}
+
+export const failedSet = (accounts: AccountOutcome[]): Set<string> =>
+  new Set(accounts.filter((a) => a.status === 'FAILED').map((a) => a.account));

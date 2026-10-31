@@ -24,7 +24,8 @@ export function normalizeBatch<TRaw>(batch: CollectionBatch<TRaw>, mapper: VmMap
     collectedAt: batch.collectedAt,
     vms: [],
     skipped: [],
-    invalid: batch.rejected.map((r) => ({ ref: r.ref, stage: 'raw' as const, errors: r.errors })),
+    invalid: batch.rejected.map((r) => ({ ref: r.ref, ...(r.account ? { account: r.account } : {}), stage: 'raw' as const, errors: r.errors })),
+    accounts: batch.accounts,
   };
   const seen = new Set<string>();
 
@@ -54,6 +55,7 @@ export function normalizeBatch<TRaw>(batch: CollectionBatch<TRaw>, mapper: VmMap
     if (!parsed.success) {
       result.invalid.push({
         ref: outcome.vm.externalId,
+        account: outcome.vm.account,
         stage: 'validation',
         errors: parsed.error.issues.map((i) => `${i.path.join('.')}: ${i.message}`),
       });
@@ -61,7 +63,7 @@ export function normalizeBatch<TRaw>(batch: CollectionBatch<TRaw>, mapper: VmMap
     }
 
     if (seen.has(parsed.data.externalId)) {
-      result.invalid.push({ ref: parsed.data.externalId, stage: 'duplicate', errors: ['same externalId appeared twice in one batch; first record kept'] });
+      result.invalid.push({ ref: parsed.data.externalId, account: parsed.data.account, stage: 'duplicate', errors: ['same externalId appeared twice in one batch; first record kept'] });
       continue;
     }
     seen.add(parsed.data.externalId);

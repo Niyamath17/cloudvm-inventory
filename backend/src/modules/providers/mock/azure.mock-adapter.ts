@@ -10,7 +10,11 @@
 import type { z } from 'zod';
 import { azureNicSchema, azureVmSchema, azureVmSizeSchema, type AzureVm } from '../raw/azure.raw.js';
 import type { CollectionBatch, ProviderAdapter } from '../ProviderAdapter.js';
-import { asArray, DEFAULT_SAMPLE_DIR, readMockSample, readString, validateEach } from './sample-file.js';
+import { asArray, DEFAULT_SAMPLE_DIR, failedSet, readMockSample, readString, resolveAccounts, validateEach } from './sample-file.js';
+
+/** Subscription ID (lower-case, as in the VM identity) from an ARM resource ID. */
+export const subscriptionOf = (armId: string | null): string | undefined =>
+  /^\/subscriptions\/([^/]+)\//i.exec(armId ?? '')?.[1]?.toLowerCase();
 
 export const AZURE_SAMPLE_FILE = 'azure.compute.virtual-machines.json';
 
@@ -35,15 +39,25 @@ export class AzureMockAdapter implements ProviderAdapter<AzureRawVm> {
     const sizeByName = new Map(sizes.map((s) => [s.name.toLowerCase(), s]));
     const nicById = new Map(nics.map((n) => [n.id.toLowerCase(), n]));
 
-    const { valid, rejected } = validateEach(asArray(file.value), azureVmSchema, (v) => readString(v, 'name'));
+    const items = asArray(file.value);
+    const { valid, rejected } = validateEach(items, azureVmSchema, (v) => readString(v, 'name'));
+    const accountOf = (v: unknown) => subscriptionOf(readString(v, 'id'));
+
+    const declared = asArray(file.accounts).map((a) => ({ ...(a as object), id: readString(a, 'id')?.toLowerCase() }));
+    const accounts = resolveAccounts(declared, items.flatMap((v) => accountOf(v) ?? []));
+    const failed = failedSet(accounts);
+    const ok = (account: string | undefined) => !account || !failed.has(account);
 
     return {
       provider: 'AZURE',
       dataSource: 'MOCK',
       sourceLabel: `MOCK sample file ${AZURE_SAMPLE_FILE}`,
       collectedAt: new Date(),
-      rejected,
-      records: valid.map((vm) => ({
+      accounts,
+      rejected: rejected
+        .map((r) => ({ ...r, account: accountOf(items.find((v) => readString(v, 'name') === r.ref)) }))
+        .filter((r) => ok(r.account)),
+      records: valid.filter((vm) => ok(subscriptionOf(vm.id))).map((vm) => ({
         vm,
         size: sizeByName.get(vm.properties.hardwareProfile.vmSize.toLowerCase()) ?? null,
         nics: vm.properties.networkProfile.networkInterfaces.flatMap((ref) => {

@@ -22,6 +22,11 @@
       "Disk = OS disk + data disks"
     ]
   },
+  "accounts": [
+    {
+      "id": "00000000-aaaa-4bbb-8ccc-000000000001"
+    }
+  ],
   "value": [
     {
       "id": "/subscriptions/00000000-aaaa-4bbb-8ccc-000000000001/resourceGroups/rg-crm-prod/providers/Microsoft.Compute/virtualMachines/crm-app-01",

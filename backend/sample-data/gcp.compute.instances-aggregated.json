@@ -25,6 +25,11 @@
       "old-etl-01 has no owner label"
     ]
   },
+  "accounts": [
+    {
+      "id": "cloudvm-demo-project"
+    }
+  ],
   "items": {
     "zones/asia-south1-a": {
       "instances": [

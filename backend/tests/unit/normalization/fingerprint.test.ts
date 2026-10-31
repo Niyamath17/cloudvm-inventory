@@ -38,9 +38,8 @@ describe('fingerprint', () => {
   });
 
   it('ignores discovery time, raw payload, raw power word and data source', () => {
-    expect(
-      fingerprint({ ...base, discoveredAt: new Date(), rawData: { uptime: 999 }, rawPowerState: 'pending', dataSource: 'LIVE' }),
-    ).toBe(fingerprint(base));
+    const noisy: NormalizedVm = { ...base, discoveredAt: new Date(), rawData: { uptime: 999 }, rawPowerState: 'pending', dataSource: 'LIVE' };
+    expect(fingerprint(noisy)).toBe(fingerprint(base));
   });
 
   it.each([

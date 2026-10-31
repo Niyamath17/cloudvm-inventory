@@ -33,6 +33,7 @@ export const vmwareVmSchema = z.object({
 export const vmwareSampleSchema = z.object({
   _meta: mockMetaSchema.extend({ provider: z.literal('VMWARE') }),
   vcenter: z.string().min(1), // vCenter host – scopes instance_uuid in the VM identity
+  error: z.string().optional(), // MOCK simulation of a failed vCenter query
   vms: z.array(vmwareVmSchema),
 });
 

@@ -21,7 +21,21 @@ export type DataSourceKind = 'MOCK' | 'LIVE';
 export interface RejectedRawRecord {
   /** Best-effort identifier for the log/UI (e.g. instance ID), if one could be read. */
   ref: string | null;
+  /** Account the record belongs to, when it could be determined (limits reconciliation impact). */
+  account?: string;
   errors: string[];
+}
+
+/**
+ * Outcome of querying ONE account (AWS account, Azure subscription, GCP project,
+ * Proxmox cluster, vCenter). Reported for EVERY account the adapter queried –
+ * including accounts that returned zero VMs – so reconciliation can tell
+ * "queried, empty" (VMs gone) from "not queried / failed" (unknown).
+ */
+export interface AccountOutcome {
+  account: string;
+  status: 'COMPLETE' | 'FAILED';
+  error?: string;
 }
 
 export interface CollectionBatch<TRaw> {
@@ -34,6 +48,8 @@ export interface CollectionBatch<TRaw> {
   records: TRaw[];
   /** Records whose raw shape was invalid. */
   rejected: RejectedRawRecord[];
+  /** Every account queried, with its outcome (records of FAILED accounts are never returned). */
+  accounts: AccountOutcome[];
 }
 
 export interface ProviderAdapter<TRaw> {
