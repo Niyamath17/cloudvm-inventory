@@ -1,6 +1,6 @@
 # CloudVM – Running Checklist
 
-_Last updated: 31 Oct 2026 (M5 implemented) · Deadline: 31 Oct 2026, 16:00 IST_
+_Last updated: 31 Oct 2026 13:10 IST (M9 frontend implemented) · Deadline: 31 Oct 2026, 16:00 IST_
 
 Legend: ✅ done & verified · 🟡 done, verification pending · ⏳ pending · ⛔ blocked
 
@@ -82,7 +82,7 @@ Source: `bash scripts/verify-m3.sh` → `m3-verification.log` – **10/10 steps 
 - ✂️ Cut for the deadline (approved): dry run, circuit breaker
 - ✅ No DB schema change · Claude's workspace: typecheck clean, 183 tests pass (33 new sync unit/contract tests), 74 DB tests skipped (19 new)
 
-## M5 – Drift detection & reporting (SIMULATION) — 🟡 IMPLEMENTED, awaiting Mac verification
+## M5 – Drift detection & reporting (SIMULATION) — ✅ COMPLETE (verified on Mac via `verify-m5.sh`; commit 4250a7a, tag m5-verified)
 - ✅ Pure drift engine: MISSING_IN_NETBOX, ORPHAN_IN_NETBOX (managed WARNING / unmanaged INFO), DUPLICATE (CRITICAL), POWER_STATE_MISMATCH (WARNING / CRITICAL on lifecycle disagreement), RESOURCE_MISMATCH (vcpus/memory/disk WARNING, name/cluster INFO)
 - ✅ Not compared (no false drift): UNKNOWN power, null local resources, disambiguated names, never-synced decommissioned VMs
 - ✅ Reports + items persisted in the M1 `drift_reports` / `drift_items` tables – **no schema change**
@@ -90,15 +90,31 @@ Source: `bash scripts/verify-m3.sh` → `m3-verification.log` – **10/10 steps 
 - ✅ API: `POST/GET /drift/reports`, `GET /drift/reports/latest`, `GET /drift/reports/:id?type=&severity=`, `POST /drift/reports/:id/remediate` – every response labelled SIMULATION
 - ✅ Read-only `NetBoxReader.listVms()` on both gateways (M4 `NetBoxGateway` interface unchanged)
 - ✅ Claude's workspace: typecheck clean · 197 tests pass (14 new unit) · 86 DB tests skipped (12 new)
-- 🟡 Run `bash scripts/verify-m5.sh` on the Mac (expected **283** tests; demo: 0 → 5 findings → 0)
+- ✅ Mac: `verify-m5.sh` PASS (demo: 0 → 5 findings → 0 after remediation + sync)
+
+## M7/M8 – Frontend shell, Dashboard, Inventory — ✅ COMPLETE (visually verified on Mac by Mahesh: real stats, 58 VMs, MOCK/SIMULATION labels)
+- ✅ React Router layout: sidebar (Dashboard, Inventory, Synchronization, Drift, Jobs), mobile drawer, top bar with `MOCK PROVIDER DATA` + `NETBOX SIMULATION` badges from `GET /netbox/status` (`API OFFLINE` on error)
+- ✅ API layer: axios client (`/api/v1` via Vite proxy), `ApiError` mapping of `{error:{code,message}}`, one function per endpoint, `useApi` hook (stale-response safe)
+- ✅ Dashboard: KPIs, VMs-by-provider chart, capacity table, latest collection / sync (SIMULATION) / drift cards, Run collection (POST + poll), empty/error/loading states – all values from `/dashboard/summary` + `/drift/reports/latest`
+- ✅ Inventory: debounced search (name/hostname/IP), provider + power chips with facet counts, lifecycle filter, server-side sorting & pagination, VM detail drawer (`/vms/:id`, sync state, raw MOCK payload)
+- ✅ Claude's workspace: `tsc -b` clean · `vite build` PASS (bundle 708 kB, chunk-size warning only) · **14/14 frontend tests** (format 4, API errors 4, Dashboard 3, Inventory 3) with mocked API
+- ✅ Mac: running in the browser against the real backend
+
+## M9 – Synchronization, Drift, Jobs UI — 🟡 IMPLEMENTED, awaiting Mac verification
+- ✅ Synchronization: SIMULATION banner (backend label + simulated record count), Run sync (POST + poll, 409 message), created/updated/decommissioned/skipped/failed/duplicate tiles, paginated history, per-run events with diff (from → to), errors and a Problems filter
+- ✅ Drift: latest report, severity tiles, type cards (click to filter), severity filter, findings grouped by type with collected vs NetBox values, VM drawer link, remediation with confirm step → `POST /drift/reports/:id/remediate` → "Run sync & re-check"; orphans/duplicates = *Manual review*, **no delete/merge action**
+- ✅ Jobs: scheduler card **NOT IMPLEMENTED** (M6), collection history with expandable provider-level results (MOCK badge, VM/invalid counts, duration, errors), sync history
+- ✅ Loading, empty, error and success states on every screen; no backend/schema change
+- ✅ Claude's workspace: `tsc -b` clean · `vite build` PASS · **25/25 frontend tests** (11 new)
+- 🟡 Mac: `npm test && npm run build`, visual walkthrough
 
 ## Environment notes
 - Claude's cloud workspace cannot reach `binaries.prisma.sh` / Docker Hub, and Claude's Mac shell is unavailable (low disk space) → all DB/Prisma verification runs on the Mac via `scripts/verify-m0.sh`.
 
 ## Pending milestones
 - ⏳ M6 Scheduler
-- ⏳ M7 Frontend shell + Dashboard
-- ⏳ M8 Inventory UI
-- ⏳ M9 Sync / Drift / Jobs / Settings UI
+- ✅ M7 Frontend shell + Dashboard
+- ✅ M8 Inventory UI
+- 🟡 M9 Sync / Drift / Jobs UI – implemented, awaiting Mac check
 - ⏳ M10 Docker (full stack) + documentation
 - ⏳ M11 End-to-end verification

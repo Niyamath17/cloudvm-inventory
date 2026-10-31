@@ -4,7 +4,42 @@ A running log of what was built, why, and how to run it. Newest milestone at the
 
 ---
 
-## M5 – Drift detection & reporting, SIMULATION mode (31 Oct 2026) – implemented
+## M7–M9 – Frontend: shell, Dashboard, Inventory, Synchronization, Drift, Jobs (31 Oct 2026)
+
+**Status:** M7/M8 ✅ visually verified on Mac by Mahesh (Dashboard shows real backend stats; Inventory shows all 58 VMs; MOCK/SIMULATION labels visible). M9 implemented – awaiting Mac visual check.
+
+### Structure
+```
+frontend/src
+├── api/          client.ts (axios, ApiError) · endpoints.ts (one fn per endpoint) · types.ts (DTOs mirroring backend JSON)
+├── hooks/        useApi.ts (loading/error/data/reload, stale-response safe) · pollUntil()
+├── lib/          format.ts (MiB/GiB formatting, dates, provider colours, drift labels)
+├── components/   ui/primitives.tsx (Card, Badge, Stat, Pager, SimulationBanner, Empty/Error states…) · layout/AppLayout.tsx · VmDetailDrawer.tsx
+└── pages/        DashboardPage · InventoryPage · SyncPage · DriftPage · JobsPage
+```
+
+### Decisions
+- **No state library** (Redux/React Query): five screens, each owns its fetches through `useApi`. Less code to explain; easy to swap later.
+- **Server-side filtering/sorting/pagination** for Inventory (`GET /vms`), so the UI scales beyond the 58 mock VMs.
+- **Long-running actions** (collection, sync) return 202 → UI polls `GET /collections/:id` / `GET /sync/runs/:id` until not RUNNING; if polling gives up it says "still running" instead of guessing.
+- **Honesty in the UI:** MOCK badge in the top bar and on provider results; SIMULATION banner on Sync and Drift using the backend's own `label`; sync success messages say "No real NetBox was contacted"; Jobs shows the scheduler as **NOT IMPLEMENTED** (M6 not built).
+- **Drift remediation** = two-step (Mark for re-sync → Confirm) → `POST /drift/reports/:id/remediate`, then optional "Run sync & re-check" (POST /sync, poll, POST /drift/reports). Orphans/duplicates are labelled *Manual review*; the UI has **no delete or merge action** (tested).
+- Sync events: unchanged VMs are counted as *skipped* but the backend writes no event for them – the UI explains this rather than showing an empty table without context.
+- No backend or schema change was needed for M9.
+
+### Verification (Claude's workspace)
+- `tsc -b` clean · `vite build` PASS (single 7xx kB bundle; Recharts – chunk-size warning only, acceptable for the prototype)
+- `npm test`: **25/25** (format 4, API errors 4, Dashboard 3, Inventory 3, Sync 4, Drift 5, Jobs 2) – API layer mocked, no backend needed
+
+### Mac check
+```bash
+cd ~/Desktop/CloudVM/frontend
+npm test && npm run build
+npm run dev   # backend must be running: cd ../backend && npm run dev
+```
+Walkthrough: Jobs → Run collection → expand run (5 MOCK provider results) · Synchronization → Run sync → counts + events · Drift → Generate report → Mark for re-sync → Confirm → Run sync & re-check.
+
+## M5 – Drift detection & reporting, SIMULATION mode (31 Oct 2026) – ✅ verified on Mac (verify-m5.sh)
 
 Compares the CloudVM inventory with the SIMULATED NetBox records (matching key: `serial`).
 Every report is stored with target `SIMULATION`; no real NetBox is contacted or claimed.
